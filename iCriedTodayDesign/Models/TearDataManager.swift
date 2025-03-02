@@ -3,10 +3,18 @@ import SwiftUI
 
 class TearDataManager: ObservableObject {
     @Published var entries: [TearEntry] = []
+    @Published var availableTags: [String] = ["#Фильмы", "#Семья", "#Здоровье", "#Работа", "#Одиночество"]
+    @Published var emojiIntensities: [EmojiIntensity] = [
+        EmojiIntensity(emoji: "🥲", color: .blue.opacity(0.4)),
+        EmojiIntensity(emoji: "😢", color: .blue.opacity(0.7)),
+        EmojiIntensity(emoji: "😭", color: .blue)
+    ]
     private let fileManager = FileManager.default
     
     init() {
         load()
+        loadTags()
+        loadEmojis()
     }
     
     // MARK: - File Management
@@ -90,13 +98,15 @@ class TearDataManager: ObservableObject {
             let components = DateComponents(year: year, month: month, day: 1)
             let monthStart = calendar.date(from: components) ?? Date()
             
-            var intensityCounts = [0, 0, 0]
+            var intensityCounts = Array(repeating: 0, count: emojiIntensities.count)
             let entriesInMonth = yearEntries.filter {
                 calendar.component(.month, from: $0.date) == month
             }
             
             entriesInMonth.forEach { entry in
-                intensityCounts[entry.intensity] += 1
+                if entry.intensity < emojiIntensities.count {
+                    intensityCounts[entry.intensity] += 1
+                }
             }
             
             return (date: monthStart, intensityCounts: intensityCounts)
@@ -120,14 +130,79 @@ class TearDataManager: ObservableObject {
     
     func emojiStatistics(for year: Int) -> [(emoji: String, count: Int)] {
         let yearEntries = entriesForYear(year)
-        var emojiCounts = [0, 0, 0]
-        let emojis = ["🥲", "😢", "😭"]
+        var emojiCounts = Array(repeating: 0, count: emojiIntensities.count)
         
         yearEntries.forEach { entry in
-            emojiCounts[entry.intensity] += 1
+            if entry.intensity < emojiIntensities.count {
+                emojiCounts[entry.intensity] += 1
+            }
         }
         
-        return zip(emojis, emojiCounts).map { (emoji: $0.0, count: $0.1) }
+        return zip(emojiIntensities.map { $0.emoji }, emojiCounts).map { (emoji: $0.0, count: $0.1) }
+    }
+    
+    // MARK: - Tag Management
+    func addTag(_ tag: String) {
+        if !availableTags.contains(tag) {
+            availableTags.append(tag)
+            saveTags()
+        }
+    }
+    
+    func removeTag(_ tag: String) {
+        if let index = availableTags.firstIndex(of: tag) {
+            availableTags.remove(at: index)
+            // Удаляем тег из всех записей
+            for i in entries.indices {
+                entries[i].tags.remove(tag)
+            }
+            saveTags()
+            save() // Сохраняем изменения в записях
+        }
+    }
+    
+    private func saveTags() {
+        if let data = try? JSONEncoder().encode(availableTags) {
+            UserDefaults.standard.set(data, forKey: "availableTags")
+        }
+    }
+    
+    private func loadTags() {
+        if let data = UserDefaults.standard.data(forKey: "availableTags"),
+           let tags = try? JSONDecoder().decode([String].self, from: data) {
+            availableTags = tags
+        }
+    }
+    
+    // MARK: - Emoji Management
+    func addEmojiIntensity(_ emoji: EmojiIntensity) {
+        emojiIntensities.append(emoji)
+        saveEmojis()
+    }
+    
+    func removeEmojiIntensity(at index: Int) {
+        guard index >= 0 && index < emojiIntensities.count else { return }
+        emojiIntensities.remove(at: index)
+        saveEmojis()
+    }
+    
+    func updateEmojiIntensity(_ emoji: EmojiIntensity, at index: Int) {
+        guard index >= 0 && index < emojiIntensities.count else { return }
+        emojiIntensities[index] = emoji
+        saveEmojis()
+    }
+    
+    private func saveEmojis() {
+        if let data = try? JSONEncoder().encode(emojiIntensities) {
+            UserDefaults.standard.set(data, forKey: "emojiIntensities")
+        }
+    }
+    
+    private func loadEmojis() {
+        if let data = UserDefaults.standard.data(forKey: "emojiIntensities"),
+           let emojis = try? JSONDecoder().decode([EmojiIntensity].self, from: data) {
+            emojiIntensities = emojis
+        }
     }
 }
 

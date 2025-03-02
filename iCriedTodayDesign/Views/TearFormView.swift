@@ -12,9 +12,6 @@ struct TearFormView: View {
     let title: String
     let onSave: (TearEntry) -> Void
     
-    static let intensityLevels = ["🥲", "😢", "😭"]
-    static let availableTags = ["#Фильмы", "#Семья", "#Здоровье", "#Работа", "#Одиночество"]
-    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -71,8 +68,8 @@ struct TearFormView: View {
             Text("Причина")
                 .font(.headline)
             
-            FlowLayout(spacing: 15) {
-                ForEach(Self.availableTags, id: \.self) { tag in
+            FlowLayout(spacing: 7) {
+                ForEach(dataManager.availableTags, id: \.self) { tag in
                     TagButton(tag: tag,
                             isSelected: selectedTags.contains(tag)) {
                         if selectedTags.contains(tag) {
@@ -84,6 +81,26 @@ struct TearFormView: View {
                 }
             }
             .frame(maxWidth: .infinity)
+            
+//            VStack(alignment: .leading, spacing: 15) {
+//                Text("Причина")
+//                    .font(.headline)
+//                ScrollView(.horizontal, showsIndicators: false) {
+//                    LazyHStack(spacing: 10) {
+//                        ForEach(dataManager.availableTags, id: \.self) { tag in
+//                            TagButton(tag: tag,
+//                                      isSelected: selectedTags.contains(tag)) {
+//                                if selectedTags.contains(tag) {
+//                                    selectedTags.remove(tag)
+//                                } else {
+//                                    selectedTags.insert(tag)
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                .frame(maxWidth: .infinity)
+//            }
         }
     }
     
@@ -93,15 +110,15 @@ struct TearFormView: View {
                 .font(.headline)
             
             HStack(spacing: 20) {
-                ForEach(0..<3) { index in
+                ForEach(Array(dataManager.emojiIntensities.enumerated()), id: \.element.id) { index, emojiIntensity in
                     Button(action: { selectedIntensity = index }) {
-                        Text(Self.intensityLevels[index])
+                        Text(emojiIntensity.emoji)
                             .font(.system(size: 40))
                             .padding()
                             .background(
                                 Circle()
                                     .fill(selectedIntensity == index ?
-                                          Color.blue.opacity(0.2) :
+                                          emojiIntensity.color.opacity(0.2) :
                                           Color(.systemBackground))
                                     .shadow(color: .black.opacity(0.2), radius: 5)
                             )
