@@ -4,14 +4,6 @@ struct SettingsView: View {
     
     var body: some View {
         List {
-            Section {
-                NavigationLink(destination: Text("Профиль")) {
-                    Label("Профиль", systemImage: "person.circle")
-                }
-                NavigationLink(destination: Text("Уведомления")) {
-                    Label("Уведомления", systemImage: "bell")
-                }
-            }
             
             Section {
                 NavigationLink(destination: TagManagementView(dataManager: dataManager)) {
@@ -19,6 +11,15 @@ struct SettingsView: View {
                 }
                 NavigationLink(destination: EmojiManagementView(dataManager: dataManager)) {
                     Label("Управление эмодзи", systemImage: "face.smiling")
+                }
+            }
+            
+            Section {
+                NavigationLink(destination: Text("Профиль")) {
+                    Label("Профиль", systemImage: "person.circle")
+                }
+                NavigationLink(destination: Text("Уведомления")) {
+                    Label("Уведомления", systemImage: "bell")
                 }
             }
             

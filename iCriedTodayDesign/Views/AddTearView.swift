@@ -7,13 +7,14 @@ struct AddTearView: View {
         TearFormView(
             dataManager: dataManager,
             selectedDate: Date(),
-            selectedIntensity: 1,
-            selectedTags: [],
+            selectedEmojiId: dataManager.emojiIntensities[0].id, // Выбираем первый эмодзи по умолчанию
+            selectedTags: Set<String>(),
             note: "",
-            title: "Новая запись"
-        ) { entry in
-            dataManager.addEntry(entry)
-        }
+            title: "Новая запись",
+            onSave: { entry in
+                dataManager.addEntry(entry)
+            }
+        )
     }
 } 
 

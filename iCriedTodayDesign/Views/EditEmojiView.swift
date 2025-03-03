@@ -27,6 +27,7 @@ struct EditEmojiView: View {
                                 emoji = String(newValue.prefix(1))
                             }
                         }
+                        .font(.title)
                     
                     ColorPicker("Цвет", selection: $color)
                 }
@@ -37,14 +38,15 @@ struct EditEmojiView: View {
                         Spacer()
                         Text(emoji)
                             .font(.title)
-                        Rectangle()
+                        Circle()
                             .fill(color)
-                            .frame(width: 30, height: 20)
+                            .frame(width: 30, height: 30)
                             .cornerRadius(4)
                     }
                 }
+                
             }
-            .navigationTitle("Редактировать эмодзи")
+            .navigationTitle("Редактировать")
             .navigationBarTitleDisplayMode(.inline)
             .navigationBarBackButtonHidden()
             .toolbar {
@@ -62,11 +64,14 @@ struct EditEmojiView: View {
                     .disabled(emoji.isEmpty)
                 }
             }
+            .navigationBarBackButtonHidden()
+
         }
     }
     
     private func saveChanges() {
-        let updatedEmoji = EmojiIntensity(emoji: emoji, color: color)
+        var updatedEmoji = EmojiIntensity(emoji: emoji, color: color)
+        updatedEmoji.id = dataManager.emojiIntensities[emojiIndex].id
         dataManager.updateEmojiIntensity(updatedEmoji, at: emojiIndex)
     }
 }

@@ -11,6 +11,7 @@ struct TagManagementView: View {
             Section {
                 HStack {
                     TextField("Новый тег", text: $newTag)
+                        .font(.title3)
                         .textInputAutocapitalization(.never)
                         .onChange(of: newTag) { newValue in
                             if !newValue.hasPrefix("#") {
@@ -23,12 +24,13 @@ struct TagManagementView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.blue)
-                            .font(.title2)
+                            .font(.title)
                     }
                     .disabled(newTag.count < 2) // Минимум # и 1 символ
                 }
             } header: {
                 Text("Добавить тег")
+                    .font(.subheadline)
             }
             
             Section {
@@ -52,6 +54,7 @@ struct TagManagementView: View {
                 }
             } header: {
                 Text("Существующие теги")
+                    .font(.subheadline)
             }
         }
         .navigationTitle("Управление тегами")
@@ -72,7 +75,7 @@ struct TagManagementView: View {
     
     private func addTag() {
         let tag = newTag.trimmingCharacters(in: .whitespaces)
-        if tag.count >= 2 { // Проверяем, что тег содержит хотя бы один символ после #
+        if tag.count >= 2 { 
             dataManager.addTag(tag)
             newTag = ""
         }

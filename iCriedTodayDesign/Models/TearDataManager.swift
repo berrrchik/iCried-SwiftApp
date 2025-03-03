@@ -90,6 +90,27 @@ class TearDataManager: ObservableObject {
         entriesForYear(year).count
     }
     
+    func getEmoji(for entry: TearEntry) -> EmojiIntensity {
+        if let emoji = emojiIntensities.first(where: { $0.id == entry.emojiId }) {
+            return emoji
+        }
+        // Если эмодзи не найден, возвращаем первый доступный
+        return emojiIntensities[0]
+    }
+    
+    func emojiStatistics(for year: Int) -> [(emoji: String, count: Int)] {
+        let yearEntries = entriesForYear(year)
+        var emojiCounts: [UUID: Int] = [:]
+        
+        yearEntries.forEach { entry in
+            emojiCounts[entry.emojiId, default: 0] += 1
+        }
+        
+        return emojiIntensities.map { emoji in
+            (emoji: emoji.emoji, count: emojiCounts[emoji.id] ?? 0)
+        }
+    }
+    
     func monthlyDataByIntensity(for year: Int) -> [(date: Date, intensityCounts: [Int])] {
         let calendar = Calendar.current
         let yearEntries = entriesForYear(year)
@@ -98,15 +119,17 @@ class TearDataManager: ObservableObject {
             let components = DateComponents(year: year, month: month, day: 1)
             let monthStart = calendar.date(from: components) ?? Date()
             
-            var intensityCounts = Array(repeating: 0, count: emojiIntensities.count)
+            var emojiCounts: [UUID: Int] = [:]
             let entriesInMonth = yearEntries.filter {
                 calendar.component(.month, from: $0.date) == month
             }
             
             entriesInMonth.forEach { entry in
-                if entry.intensity < emojiIntensities.count {
-                    intensityCounts[entry.intensity] += 1
-                }
+                emojiCounts[entry.emojiId, default: 0] += 1
+            }
+            
+            let intensityCounts = emojiIntensities.map { emoji in
+                emojiCounts[emoji.id] ?? 0
             }
             
             return (date: monthStart, intensityCounts: intensityCounts)
@@ -128,19 +151,6 @@ class TearDataManager: ObservableObject {
             .sorted { $0.count > $1.count }
     }
     
-    func emojiStatistics(for year: Int) -> [(emoji: String, count: Int)] {
-        let yearEntries = entriesForYear(year)
-        var emojiCounts = Array(repeating: 0, count: emojiIntensities.count)
-        
-        yearEntries.forEach { entry in
-            if entry.intensity < emojiIntensities.count {
-                emojiCounts[entry.intensity] += 1
-            }
-        }
-        
-        return zip(emojiIntensities.map { $0.emoji }, emojiCounts).map { (emoji: $0.0, count: $0.1) }
-    }
-    
     // MARK: - Tag Management
     func addTag(_ tag: String) {
         if !availableTags.contains(tag) {
@@ -152,12 +162,11 @@ class TearDataManager: ObservableObject {
     func removeTag(_ tag: String) {
         if let index = availableTags.firstIndex(of: tag) {
             availableTags.remove(at: index)
-            // Удаляем тег из всех записей
             for i in entries.indices {
                 entries[i].tags.remove(tag)
             }
             saveTags()
-            save() // Сохраняем изменения в записях
+            save()
         }
     }
     
@@ -186,10 +195,31 @@ class TearDataManager: ObservableObject {
         saveEmojis()
     }
     
-    func updateEmojiIntensity(_ emoji: EmojiIntensity, at index: Int) {
+    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
         guard index >= 0 && index < emojiIntensities.count else { return }
-        emojiIntensities[index] = emoji
+        let originalId = emojiIntensities[index].id
+        var newEmoji = updatedEmoji
+        newEmoji.id = originalId
+        emojiIntensities[index] = newEmoji
         saveEmojis()
+    }
+    
+    func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
+        let oldOrder = emojiIntensities.map { $0.id }
+        
+        emojiIntensities.move(fromOffsets: source, toOffset: destination)
+        
+        let newOrder = emojiIntensities.map { $0.id }
+        let orderChanged = oldOrder != newOrder
+        
+        if orderChanged {
+            objectWillChange.send()
+            saveEmojis()
+            
+            print("Эмодзи перемещены: \(oldOrder) -> \(newOrder)")
+        } else {
+            print("Порядок эмодзи не изменился")
+        }
     }
     
     private func saveEmojis() {

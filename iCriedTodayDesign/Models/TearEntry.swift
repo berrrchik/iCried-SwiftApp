@@ -1,16 +1,15 @@
 import Foundation
 
 struct TearEntry: Identifiable, Codable {
-    var id: UUID
+    var id = UUID()
     var date: Date
-    var intensity: Int
+    var emojiId: UUID
     var tags: Set<String>
     var note: String
     
-    init(id: UUID = UUID(), date: Date = Date(), intensity: Int = 1, tags: Set<String> = [], note: String = "") {
-        self.id = id
+    init(date: Date, emojiId: UUID, tags: Set<String>, note: String) {
         self.date = date
-        self.intensity = intensity
+        self.emojiId = emojiId
         self.tags = tags
         self.note = note
     }

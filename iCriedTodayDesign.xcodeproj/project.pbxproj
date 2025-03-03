@@ -168,10 +168,10 @@
 		57DE818D2D66651A0097709F /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				573968392D749EF100679200 /* EditEmojiView.swift */,
 				5739682C2D70DDEB00679200 /* Components */,
 				573968322D70F12500679200 /* SettingsView.swift */,
 				573968372D749B2700679200 /* EmojiManagementView.swift */,
+				573968392D749EF100679200 /* EditEmojiView.swift */,
 				573968312D70F12500679200 /* TagManagementView.swift */,
 				573968292D70C03500679200 /* TearFormView.swift */,
 				573968282D70C03500679200 /* AddTearView.swift */,

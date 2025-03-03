@@ -38,7 +38,7 @@ struct StatisticsView: View {
         }
         .listStyle(InsetGroupedListStyle())
         .background(Color(.systemGroupedBackground))
-        .navigationTitle("Statistics")
+        .navigationTitle("Статистика")
         .alert("Удалить запись?", isPresented: $showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
@@ -81,7 +81,7 @@ struct StatisticsView: View {
             Chart {
                 let monthlyData = dataManager.monthlyDataByIntensity(for: selectedYear)
                 ForEach(monthlyData, id: \.date) { item in
-                    ForEach(Array(dataManager.emojiIntensities.enumerated()), id: \.element.id) { index, emojiIntensity in
+                    ForEach(Array(dataManager.emojiIntensities.enumerated()).reversed(), id: \.element.id) { index, emojiIntensity in
                         if index < item.intensityCounts.count {
                             BarMark(
                                 x: .value("Месяц", item.date, unit: .month),
@@ -106,11 +106,21 @@ struct StatisticsView: View {
     private var emojiStats: some View {
         let stats = dataManager.emojiStatistics(for: selectedYear)
         
-        return HStack(spacing: 20) {
-            ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
-                let stat = stats[index]
-                let emojiIntensity = dataManager.emojiIntensities[index]
-                EmojiStatCard(emoji: stat.emoji, count: stat.count, color: emojiIntensity.color)
+//        return HStack(spacing: 20) {
+//            ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
+//                let stat = stats[index]
+//                let emojiIntensity = dataManager.emojiIntensities[index]
+//                EmojiStatCard(emoji: stat.emoji, count: stat.count, color: emojiIntensity.color)
+//            }
+//        }
+//        .padding(.horizontal)
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 10) {
+                ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
+                    let stat = stats[index]
+                    let emojiIntensity = dataManager.emojiIntensities[index]
+                    EmojiStatCard(emoji: stat.emoji, count: stat.count, color: emojiIntensity.color)
+                }
             }
         }
         .padding(.horizontal)
@@ -179,12 +189,12 @@ private struct EmojiStatCard: View {
                 .font(.title)
             Text("\(count)")
                 .font(.headline)
-                .foregroundColor(color)
+                .foregroundColor(.black)
         }
         .frame(width: 90, height: 60)
         .background(Color(.systemBackground))
         .cornerRadius(10)
-        .shadow(color: .black.opacity(0.1), radius: 5)
+        .shadow(color: .black.opacity(0.15), radius: 5)
     }
 }
 
@@ -193,7 +203,7 @@ private struct TagStatView: View {
     
     var body: some View {
         Text(tag)
-            .font(.caption)
+            .font(.subheadline)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(

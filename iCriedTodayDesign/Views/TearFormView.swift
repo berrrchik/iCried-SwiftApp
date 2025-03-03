@@ -5,7 +5,7 @@ struct TearFormView: View {
     @ObservedObject var dataManager: TearDataManager
     
     @State var selectedDate: Date
-    @State var selectedIntensity: Int
+    @State var selectedEmojiId: UUID
     @State var selectedTags: Set<String>
     @State var note: String
     
@@ -34,7 +34,7 @@ struct TearFormView: View {
                     Button("Сохранить") {
                         let entry = TearEntry(
                             date: selectedDate,
-                            intensity: selectedIntensity,
+                            emojiId: selectedEmojiId,
                             tags: selectedTags,
                             note: note
                         )
@@ -110,15 +110,15 @@ struct TearFormView: View {
                 .font(.headline)
             
             HStack(spacing: 20) {
-                ForEach(Array(dataManager.emojiIntensities.enumerated()), id: \.element.id) { index, emojiIntensity in
-                    Button(action: { selectedIntensity = index }) {
+                ForEach(dataManager.emojiIntensities) { emojiIntensity in
+                    Button(action: { selectedEmojiId = emojiIntensity.id }) {
                         Text(emojiIntensity.emoji)
                             .font(.system(size: 40))
                             .padding()
                             .background(
                                 Circle()
-                                    .fill(selectedIntensity == index ?
-                                          emojiIntensity.color.opacity(0.2) :
+                                    .fill(selectedEmojiId == emojiIntensity.id ?
+                                          .blue.opacity(0.2) :
                                           Color(.systemBackground))
                                     .shadow(color: .black.opacity(0.2), radius: 5)
                             )

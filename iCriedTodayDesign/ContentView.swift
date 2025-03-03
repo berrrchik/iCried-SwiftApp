@@ -116,15 +116,14 @@ struct TearCard: View {
         Button(action: { showingEditSheet = true }) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
-                    if entry.intensity < dataManager.emojiIntensities.count {
-                        Text(dataManager.emojiIntensities[entry.intensity].emoji)
-                            .font(.title)
-                    }
+                    Text(dataManager.getEmoji(for: entry).emoji)
+                                .font(.title)
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 5) {
                             ForEach(Array(entry.tags), id: \.self) { tag in
                                 Text(tag)
-                                    .font(.caption)
+//                                    .font(.caption)
+                                    .font(.subheadline)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
                                     .background(

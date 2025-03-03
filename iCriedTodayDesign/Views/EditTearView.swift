@@ -3,29 +3,20 @@ import SwiftUI
 struct EditTearView: View {
     @ObservedObject var dataManager: TearDataManager
     let entry: TearEntry
-    @State private var showingDeleteAlert = false
     
     var body: some View {
         TearFormView(
             dataManager: dataManager,
             selectedDate: entry.date,
-            selectedIntensity: entry.intensity,
+            selectedEmojiId: entry.emojiId,
             selectedTags: entry.tags,
             note: entry.note,
-            title: "Редактировать"
-        ) { updatedEntry in
-            let finalEntry = TearEntry(
-                id: entry.id,
-                date: updatedEntry.date,
-                intensity: updatedEntry.intensity,
-                tags: updatedEntry.tags,
-                note: updatedEntry.note
-            )
-            dataManager.updateEntry(finalEntry)
-        }
+            title: "Редактировать",
+            onSave: { updatedEntry in
+                var newEntry = updatedEntry
+                newEntry.id = entry.id 
+                dataManager.updateEntry(newEntry)
+            }
+        )
     }
-}
-
-#Preview {
-    EditTearView(dataManager: TearDataManager(), entry: TearEntry())
 }

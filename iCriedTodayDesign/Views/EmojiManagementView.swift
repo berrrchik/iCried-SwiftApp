@@ -8,6 +8,7 @@ struct EmojiManagementView: View {
     @State private var emojiToDeleteIndex: Int?
     @State private var editingEmojiIndex: Int?
     @State private var showingEditSheet = false
+    @State private var isEditing = false
     
     var body: some View {
         List {
@@ -28,7 +29,7 @@ struct EmojiManagementView: View {
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .foregroundColor(.blue)
-                            .font(.title2)
+                            .font(.title)
                     }
                     .disabled(newEmoji.isEmpty)
                 }
@@ -43,36 +44,79 @@ struct EmojiManagementView: View {
                     Text("Нет добавленных эмодзи")
                         .foregroundColor(.gray)
                 } else {
-                    ForEach(Array(dataManager.emojiIntensities.enumerated()), id: \.element.id) { index, emoji in
-                        NavigationLink {
-                            EditEmojiView(dataManager: dataManager, emojiIndex: index)
-                        } label: {
+                    ForEach(dataManager.emojiIntensities) { emoji in
+                        if isEditing {
                             HStack {
+                                Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
+                                    .foregroundColor(.gray)
+                                    .font(.caption)
                                 Text(emoji.emoji)
-                                    .font(.title)
+                                    .font(.largeTitle)
                                 
-                                Rectangle()
+                                Circle()
                                     .fill(emoji.color)
-                                    .frame(width: 30, height: 20)
+                                    .frame(width: 30, height: 30)
                                     .cornerRadius(4)
                             }
-                        }
-                        .swipeActions(allowsFullSwipe: false) {
-                            Button(role: .destructive) {
-                                emojiToDeleteIndex = index
-                                showingAlert = true
+                        } else {
+                            NavigationLink {
+                                if let index = dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id }) {
+                                    EditEmojiView(dataManager: dataManager, emojiIndex: index)
+                                }
                             } label: {
-                                Label("Удалить", systemImage: "trash")
+                                HStack {
+                                    Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
+                                        .foregroundColor(.gray)
+                                        .font(.caption)
+                                    Text(emoji.emoji)
+                                        .font(.largeTitle)
+                                    
+                                    Circle()
+                                        .fill(emoji.color)
+                                        .frame(width: 30, height: 30)
+                                        .cornerRadius(4)
+                                }
                             }
-                            .disabled(dataManager.emojiIntensities.count <= 1)
+                            .swipeActions(allowsFullSwipe: false) {
+                                Button(role: .destructive) {
+                                    if let index = dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id }) {
+                                        emojiToDeleteIndex = index
+                                        showingAlert = true
+                                    }
+                                } label: {
+                                    Label("Удалить", systemImage: "trash")
+                                }
+                                .disabled(dataManager.emojiIntensities.count <= 1)
+                            }
                         }
+                    }
+                    .onMove { indices, destination in
+                        print("Перемещение из \(indices) в \(destination)")
+                        dataManager.moveEmojiIntensity(from: indices, to: destination)
                     }
                 }
             } header: {
                 Text("Существующие эмодзи")
+            } footer: {
+                isEditing ? Text("Перетащите эмодзи, чтобы изменить их порядок") : nil
             }
         }
         .navigationTitle("Управление эмодзи")
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                EditButton()
+                    .onChange(of: isEditing) { _ in
+                        // Обновляем UI при изменении режима редактирования
+                        dataManager.objectWillChange.send()
+                    }
+            }
+        }
+        .environment(\.editMode, Binding(
+            get: { isEditing ? .active : .inactive },
+            set: { newValue in
+                isEditing = newValue == .active
+            }
+        ))
         .alert("Удалить эмодзи?", isPresented: $showingAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
