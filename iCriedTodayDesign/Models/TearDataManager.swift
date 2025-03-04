@@ -5,9 +5,9 @@ class TearDataManager: ObservableObject {
     @Published var entries: [TearEntry] = []
     @Published var availableTags: [String] = ["#Фильмы", "#Семья", "#Здоровье", "#Работа", "#Одиночество"]
     @Published var emojiIntensities: [EmojiIntensity] = [
-        EmojiIntensity(emoji: "🥲", color: .blue.opacity(0.4)),
-        EmojiIntensity(emoji: "😢", color: .blue.opacity(0.7)),
-        EmojiIntensity(emoji: "😭", color: .blue)
+        EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
+        EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
+        EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0)
     ]
     private let fileManager = FileManager.default
     

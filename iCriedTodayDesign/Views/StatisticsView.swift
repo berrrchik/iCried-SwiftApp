@@ -15,7 +15,7 @@ struct StatisticsView: View {
                 emojiStats
                 tagsList
             }
-            .listRowSeparator(.hidden)
+//            .listRowSeparator(.hidden)
             
             // Список записей
             ForEach(groupedEntriesForYear, id: \.month) { section in
@@ -106,16 +106,8 @@ struct StatisticsView: View {
     private var emojiStats: some View {
         let stats = dataManager.emojiStatistics(for: selectedYear)
         
-//        return HStack(spacing: 20) {
-//            ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
-//                let stat = stats[index]
-//                let emojiIntensity = dataManager.emojiIntensities[index]
-//                EmojiStatCard(emoji: stat.emoji, count: stat.count, color: emojiIntensity.color)
-//            }
-//        }
-//        .padding(.horizontal)
         return ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 10) {
+            LazyHStack(spacing: 20) {
                 ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
                     let stat = stats[index]
                     let emojiIntensity = dataManager.emojiIntensities[index]
@@ -127,19 +119,12 @@ struct StatisticsView: View {
     }
     
     private var tagsList: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(spacing: 10) {
-                ForEach(dataManager.tagStatistics(for: selectedYear), id: \.tag) { tagStat in
-                    TagStatView(tag: tagStat.tag)
-                }
+        
+        FlowLayout(spacing: 10) {
+            ForEach(dataManager.tagStatistics(for: selectedYear), id: \.tag) { tagStat in
+                TagStatView(tag: tagStat.tag)
             }
         }
-        
-//        FlowLayout(spacing: 10) {
-//            ForEach(dataManager.tagStatistics(for: selectedYear), id: \.tag) { tagStat in
-//                TagStatView(tag: tagStat.tag)
-//            }
-//        }
 
     }
     
@@ -191,9 +176,12 @@ private struct EmojiStatCard: View {
                 .font(.headline)
                 .foregroundColor(.black)
         }
-        .frame(width: 90, height: 60)
+        
+        .frame(width: 70, height: 70)
         .background(Color(.systemBackground))
-        .cornerRadius(10)
+        .clipShape(Circle())
+        .padding(5)
+        .background(Color.clear)
         .shadow(color: .black.opacity(0.15), radius: 5)
     }
 }

@@ -2,24 +2,19 @@ import SwiftUI
 
 struct EmojiIntensity: Identifiable, Codable, Equatable {
     var id = UUID()
-    var emoji: String
-    var colorHex: String
-    
-    var color: Color {
-        Color(hex: colorHex) ?? .blue
-    }
-    
-    init(emoji: String, color: Color) {
-        self.emoji = emoji
-        self.colorHex = color.toHex() ?? "#0000FF"
-    }
-    
-    init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        id = try container.decode(UUID.self, forKey: .id)
-        emoji = try container.decode(String.self, forKey: .emoji)
-        colorHex = try container.decode(String.self, forKey: .colorHex)
-    }
+        var emoji: String
+        var colorHex: String
+        var opacity: Double
+        
+        var color: Color {
+            (Color(hex: colorHex) ?? .blue).opacity(opacity)
+        }
+        
+        init(emoji: String, color: Color, opacity: Double = 1.0) {
+            self.emoji = emoji
+            self.colorHex = color.toHex() ?? "#0000FF"
+            self.opacity = opacity
+        }
 }
 
 // Расширения для работы с цветами

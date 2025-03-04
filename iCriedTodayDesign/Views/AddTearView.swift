@@ -7,7 +7,7 @@ struct AddTearView: View {
         TearFormView(
             dataManager: dataManager,
             selectedDate: Date(),
-            selectedEmojiId: dataManager.emojiIntensities[0].id, // Выбираем первый эмодзи по умолчанию
+            selectedEmojiId: dataManager.emojiIntensities[0].id, 
             selectedTags: Set<String>(),
             note: "",
             title: "Новая запись",
@@ -18,3 +18,6 @@ struct AddTearView: View {
     }
 } 
 
+#Preview {
+    AddTearView(dataManager: TearDataManager())
+}

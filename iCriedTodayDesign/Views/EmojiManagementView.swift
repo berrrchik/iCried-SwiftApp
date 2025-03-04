@@ -13,50 +13,65 @@ struct EmojiManagementView: View {
     var body: some View {
         List {
             Section {
-                HStack {
-                    TextField("Новый эмодзи", text: $newEmoji)
-                        .onChange(of: newEmoji) { newValue in
-                            if newValue.count > 1 {
-                                newEmoji = String(newValue.prefix(1))
+                VStack(spacing: 16) {
+                    HStack(spacing: 12) {
+                        TextField("", text: $newEmoji)
+                            .font(.system(size: 30))
+                            .frame(width: 80)
+                            .multilineTextAlignment(.center)
+                            .padding(8)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .onChange(of: newEmoji) { newValue in
+                                if newValue.count > 1 {
+                                    newEmoji = String(newValue.prefix(1))
+                                }
                             }
+                        
+                        VStack(alignment: .leading) {
+                            
+                            ColorPicker("", selection: $selectedColor, supportsOpacity: false)
+                                .labelsHidden()
+                                .scaleEffect(CGSize(width: 1.2, height: 1.2))
                         }
-                    
-                    ColorPicker("", selection: $selectedColor)
-                        .labelsHidden()
-                    
-                    Button {
-                        addEmoji()
-                    } label: {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title)
+                        
+                        Spacer()
+                        
+                        Button {
+                            withAnimation {
+                                addEmoji()
+                            }
+                        } label: {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 30))
+                                .foregroundColor(.blue)
+                        }
+                        .disabled(newEmoji.isEmpty)
                     }
-                    .disabled(newEmoji.isEmpty)
                 }
+                .padding(.vertical, 1)
             } header: {
                 Text("Добавить эмодзи")
             } footer: {
-                Text("Выберите один символ эмодзи и его цвет")
+                Text("Выберите один эмодзи и цвет для него")
             }
             
             Section {
                 if dataManager.emojiIntensities.isEmpty {
                     Text("Нет добавленных эмодзи")
                         .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
                 } else {
                     ForEach(dataManager.emojiIntensities) { emoji in
                         if isEditing {
-                            HStack {
+                            HStack(spacing: 16) {
                                 Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(.secondary)
                                     .font(.caption)
-                                Text(emoji.emoji)
-                                    .font(.largeTitle)
+                                    .frame(width: 24)
                                 
-                                Circle()
-                                    .fill(emoji.color)
-                                    .frame(width: 30, height: 30)
-                                    .cornerRadius(4)
+                                EmojiCell(emoji: emoji)
                             }
                         } else {
                             NavigationLink {
@@ -64,17 +79,13 @@ struct EmojiManagementView: View {
                                     EditEmojiView(dataManager: dataManager, emojiIndex: index)
                                 }
                             } label: {
-                                HStack {
+                                HStack(spacing: 16) {
                                     Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(.secondary)
                                         .font(.caption)
-                                    Text(emoji.emoji)
-                                        .font(.largeTitle)
+                                        .frame(width: 24)
                                     
-                                    Circle()
-                                        .fill(emoji.color)
-                                        .frame(width: 30, height: 30)
-                                        .cornerRadius(4)
+                                    EmojiCell(emoji: emoji)
                                 }
                             }
                             .swipeActions(allowsFullSwipe: false) {
@@ -91,7 +102,6 @@ struct EmojiManagementView: View {
                         }
                     }
                     .onMove { indices, destination in
-                        print("Перемещение из \(indices) в \(destination)")
                         dataManager.moveEmojiIntensity(from: indices, to: destination)
                     }
                 }
@@ -137,6 +147,32 @@ struct EmojiManagementView: View {
             newEmoji = ""
             selectedColor = .blue
         }
+    }
+}
+
+private struct EmojiCell: View {
+    let emoji: EmojiIntensity
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            Text(emoji.emoji)
+                .font(.system(size: 32))
+                .frame(width: 60, height: 60)
+                .background(Color(.systemGray6))
+                .cornerRadius(12)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Circle()
+                    .fill(emoji.color)
+                    .frame(width: 24, height: 24)
+                
+                Text("Прозрачность: \(Int(emoji.opacity * 100))%")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+        }
+        .padding(.vertical, 4)
     }
 }
 
