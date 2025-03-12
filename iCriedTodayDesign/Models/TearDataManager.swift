@@ -3,7 +3,13 @@ import SwiftUI
 
 class TearDataManager: ObservableObject {
     @Published var entries: [TearEntry] = []
-    @Published var availableTags: [String] = ["#Фильмы", "#Семья", "#Здоровье", "#Работа", "#Одиночество"]
+    @Published var tags: [TagItem] = [
+        TagItem(name: "#Здоровье"),
+        TagItem(name: "#Одиночество"),
+        TagItem(name: "#Работа"),
+        TagItem(name: "#Семья"),
+        TagItem(name: "#Фильмы")
+    ]
     @Published var emojiIntensities: [EmojiIntensity] = [
         EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
         EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
@@ -20,9 +26,9 @@ class TearDataManager: ObservableObject {
     // MARK: - File Management
     private static func fileURL() throws -> URL {
         try FileManager.default.url(for: .documentDirectory,
-                                  in: .userDomainMask,
-                                  appropriateFor: nil,
-                                  create: false)
+                                    in: .userDomainMask,
+                                    appropriateFor: nil,
+                                    create: false)
         .appendingPathComponent("tearEntries.data")
     }
     
@@ -68,22 +74,55 @@ class TearDataManager: ObservableObject {
     }
     
     // MARK: - Data Analysis
+    
     var groupedEntries: [(month: String, records: [TearEntry])] {
+        print("Начинаем группировку записей: \(entries.count) элементов")
+        
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "LLLL yyyy"
+        
         let grouped = Dictionary(grouping: entries) { entry in
-            let formatter = DateFormatter()
-            formatter.locale = Locale(identifier: "ru_RU")
-            formatter.dateFormat = "LLLL yyyy"
-            return formatter.string(from: entry.date)
+            let components = calendar.dateComponents([.year, .month], from: entry.date)
+            return components
         }
-        return grouped.sorted { $0.key > $1.key }
-            .map { (month: $0.key.uppercased(), records: $0.value) }
+        
+        let sortedGroups = grouped.sorted { $0.key.year! > $1.key.year! || ($0.key.year! == $1.key.year! && $0.key.month! > $1.key.month!) }
+            .map { (month: formatter.string(from: calendar.date(from: $0.key)!).uppercased(), records: $0.value.sorted(by: { $0.date > $1.date })) }
+        
+        for section in sortedGroups {
+            print("Группа: \(section.month), записей: \(section.records.count)")
+        }
+        
+        return sortedGroups
     }
     
-    func entriesForYear(_ year: Int) -> [TearEntry] {
+    func getTag(for entry: TearEntry) -> TagItem {
+        if let tag = tags.first(where: { $0.id == entry.tagId }) {
+            return tag
+        }
+        return tags[0]
+    }
+    
+    func entriesForYear(_ year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [TearEntry] {
         let calendar = Calendar.current
-        return entries.filter { entry in
+        var filteredEntries = entries.filter { entry in
             calendar.component(.year, from: entry.date) == year
         }
+        
+        if let emojiId = emojiId {
+            filteredEntries = filteredEntries.filter { $0.emojiId == emojiId }
+        }
+        
+        if let tagId = tagId {
+            filteredEntries = filteredEntries.filter { $0.tagId == tagId }
+        }
+        
+        filteredEntries.sort(by: { $0.date > $1.date })
+        
+        print("Filtered entries for year \(year): \(filteredEntries.count) entries")
+        return filteredEntries
     }
     
     func totalEntriesForYear(_ year: Int) -> Int {
@@ -94,12 +133,11 @@ class TearDataManager: ObservableObject {
         if let emoji = emojiIntensities.first(where: { $0.id == entry.emojiId }) {
             return emoji
         }
-        // Если эмодзи не найден, возвращаем первый доступный
         return emojiIntensities[0]
     }
     
-    func emojiStatistics(for year: Int) -> [(emoji: String, count: Int)] {
-        let yearEntries = entriesForYear(year)
+    func emojiStatistics(for year: Int, emojiId: UUID? = nil) -> [(emoji: String, count: Int)] {
+        let yearEntries = entriesForYear(year, emojiId: emojiId)
         var emojiCounts: [UUID: Int] = [:]
         
         yearEntries.forEach { entry in
@@ -109,11 +147,26 @@ class TearDataManager: ObservableObject {
         return emojiIntensities.map { emoji in
             (emoji: emoji.emoji, count: emojiCounts[emoji.id] ?? 0)
         }
+        
     }
     
-    func monthlyDataByIntensity(for year: Int) -> [(date: Date, intensityCounts: [Int])] {
+    func tagStatistics(for year: Int, tagId: UUID? = nil) -> [(tag: String, count: Int)] {
+        let yearEntries = entriesForYear(year, tagId: tagId)
+        var tagCounts: [UUID: Int] = [:]
+        
+        yearEntries.forEach { entry in
+            tagCounts[entry.tagId, default: 0] += 1
+        }
+        
+        return tags.map { tag in
+            (tag: tag.name, count: tagCounts[tag.id] ?? 0)
+        }
+        
+    }
+    
+    func monthlyDataByIntensity(for year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [(date: Date, intensityCounts: [Int])] {
         let calendar = Calendar.current
-        let yearEntries = entriesForYear(year)
+        let yearEntries = entriesForYear(year, emojiId: emojiId, tagId: tagId)
         
         return (1...12).map { month in
             let components = DateComponents(year: year, month: month, day: 1)
@@ -136,51 +189,46 @@ class TearDataManager: ObservableObject {
         }
     }
     
-    func tagStatistics(for year: Int) -> [TagStatistic] {
-        let yearEntries = entriesForYear(year)
-        var tagCounts: [String: Int] = [:]
-        
-        yearEntries.forEach { entry in
-            entry.tags.forEach { tag in
-                tagCounts[tag, default: 0] += 1
-            }
-        }
-        
-        return tagCounts
-            .map { TagStatistic(tag: $0.key, count: $0.value) }
-            .sorted { $0.count > $1.count }
-    }
     
     // MARK: - Tag Management
-    func addTag(_ tag: String) {
-        if !availableTags.contains(tag) {
-            availableTags.append(tag)
-            saveTags()
-        }
+    func addTag(_ name: String) {
+        let tag = TagItem(name: name)
+        tags.append(tag)
+        saveTags()
     }
     
-    func removeTag(_ tag: String) {
-        if let index = availableTags.firstIndex(of: tag) {
-            availableTags.remove(at: index)
-            for i in entries.indices {
-                entries[i].tags.remove(tag)
-            }
+    func removeTag(_ tagId: UUID) {
+        if let index = tags.firstIndex(where: { $0.id == tagId }) {
+            tags.remove(at: index)
             saveTags()
             save()
         }
     }
     
     private func saveTags() {
-        if let data = try? JSONEncoder().encode(availableTags) {
-            UserDefaults.standard.set(data, forKey: "availableTags")
+        if let data = try? JSONEncoder().encode(tags) {
+            print("💾 Сохранение тегов: \(tags.map { $0.name })")
+            UserDefaults.standard.set(data, forKey: "tags")
         }
     }
     
     private func loadTags() {
-        if let data = UserDefaults.standard.data(forKey: "availableTags"),
-           let tags = try? JSONDecoder().decode([String].self, from: data) {
-            availableTags = tags
+        if let data = UserDefaults.standard.data(forKey: "tags"),
+           let loadedTags = try? JSONDecoder().decode([TagItem].self, from: data) {
+            tags = loadedTags
+            print("Tags loaded from UserDefaults: \(tags.map { $0.name })")
         }
+    }
+    
+    private func updateEntriesWithLoadedTags() {
+        for (index, entry) in entries.enumerated() {
+            var mutableEntry = entry
+            if !tags.contains(where: { $0.id == mutableEntry.tagId }) {
+                mutableEntry.tagId = tags[0].id
+                entries[index] = mutableEntry
+            }
+        }
+        save()
     }
     
     // MARK: - Emoji Management
@@ -232,26 +280,6 @@ class TearDataManager: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "emojiIntensities"),
            let emojis = try? JSONDecoder().decode([EmojiIntensity].self, from: data) {
             emojiIntensities = emojis
-        }
-    }
-}
-
-// MARK: - Supporting Types
-extension TearDataManager {
-    struct TagStatistic: Identifiable {
-        let id = UUID()
-        let tag: String
-        let count: Int
-        
-        var emoji: String {
-            switch tag {
-            case "#Media": return "😐"
-            case "#Family": return "😢"
-            case "#Health": return "😭"
-            case "#Work": return "😫"
-            case "#Loneliness": return "🥺"
-            default: return "😢"
-            }
         }
     }
 }

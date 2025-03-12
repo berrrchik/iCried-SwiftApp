@@ -2,19 +2,19 @@ import SwiftUI
 
 struct EmojiIntensity: Identifiable, Codable, Equatable {
     var id = UUID()
-        var emoji: String
-        var colorHex: String
-        var opacity: Double
-        
-        var color: Color {
-            (Color(hex: colorHex) ?? .blue).opacity(opacity)
-        }
-        
-        init(emoji: String, color: Color, opacity: Double = 1.0) {
-            self.emoji = emoji
-            self.colorHex = color.toHex() ?? "#0000FF"
-            self.opacity = opacity
-        }
+    var emoji: String
+    var colorHex: String
+    var opacity: Double
+    
+    var color: Color {
+        (Color(hex: colorHex) ?? .blue).opacity(opacity)
+    }
+    
+    init(emoji: String, color: Color, opacity: Double = 1.0) {
+        self.emoji = emoji
+        self.colorHex = color.toHex() ?? "#0000FF"
+        self.opacity = opacity
+    }
 }
 
 // Расширения для работы с цветами
@@ -47,4 +47,4 @@ extension Color {
         
         return String(format: "#%02lX%02lX%02lX", lroundf(r * 255), lroundf(g * 255), lroundf(b * 255))
     }
-} 
+}

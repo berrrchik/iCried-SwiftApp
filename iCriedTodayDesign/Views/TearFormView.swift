@@ -6,7 +6,7 @@ struct TearFormView: View {
     
     @State var selectedDate: Date
     @State var selectedEmojiId: UUID
-    @State var selectedTags: Set<String>
+    @State var selectedTagId: UUID
     @State var note: String
     
     let title: String
@@ -35,7 +35,7 @@ struct TearFormView: View {
                         let entry = TearEntry(
                             date: selectedDate,
                             emojiId: selectedEmojiId,
-                            tags: selectedTags,
+                            tagId: selectedTagId,
                             note: note
                         )
                         onSave(entry)
@@ -69,15 +69,14 @@ struct TearFormView: View {
                 .font(.headline)
             
             FlowLayout(spacing: 12) {
-                ForEach(dataManager.availableTags, id: \.self) { tag in
-                    TagButton(tag: tag,
-                            isSelected: selectedTags.contains(tag)) {
-                        if selectedTags.contains(tag) {
-                            selectedTags.remove(tag)
-                        } else {
-                            selectedTags.insert(tag)
+                ForEach(dataManager.tags) { tag in
+                    TagButton(
+                        tagName: tag.name,
+                        isSelected: selectedTagId == tag.id,
+                        action: {
+                            selectedTagId = tag.id
                         }
-                    }
+                    )
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -88,27 +87,20 @@ struct TearFormView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Насколько сильно?")
                 .font(.headline)
-
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 15) {
                     ForEach(dataManager.emojiIntensities) { emojiIntensity in
-                        Button(action: { selectedEmojiId = emojiIntensity.id }) {
-                            Text(emojiIntensity.emoji)
-                                .font(.system(size: 40))
-                                .padding()
-                                .background(
-                                    Circle()
-                                        .fill(selectedEmojiId == emojiIntensity.id ?
-                                            .blue.opacity(0.2) :
-                                                Color(.systemBackground))
-                                        .frame(width: 70, height: 70)
-                                        .background(Color(.systemBackground))
-                                        .clipShape(Circle())
-                                        .padding(8)
-                                        .background(Color.clear)
-                                        .shadow(color: .black.opacity(0.2), radius: 4)
-                                )
-                        }
+                        EmojiButton(
+                            emoji: emojiIntensity.emoji,
+                            count: nil,
+                            color: emojiIntensity.color,
+                            isSelected: selectedEmojiId == emojiIntensity.id,
+                            action: {
+                                selectedEmojiId = emojiIntensity.id
+                            },
+                            isCountVisible: false,
+                            fontSize: 40
+                        )
                     }
                 }
             }
@@ -124,12 +116,13 @@ struct TearFormView: View {
             DatePicker("", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
                 .labelsHidden()
-                .padding()
+                .padding([.all], 10)
                 .background(
                     RoundedRectangle(cornerRadius: 15)
                         .fill(Color(.systemBackground))
                         .shadow(color: .black.opacity(0.1), radius: 5)
                 )
+                .environment(\.locale, Locale(identifier: "ru_RU"))
         }
     }
-} 
+}

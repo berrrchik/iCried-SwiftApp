@@ -6,6 +6,9 @@ struct StatisticsView: View {
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
+    @State private var selectedTagId: UUID? = nil
+    @State private var selectedEmojiId: UUID? = nil
+    @State private var selectedMonth: String? = nil
     
     var body: some View {
         List {
@@ -15,25 +18,24 @@ struct StatisticsView: View {
                 emojiStats
                 tagsList
             }
-//            .listRowSeparator(.hidden)
             
             // Список записей
             ForEach(groupedEntriesForYear, id: \.month) { section in
                 Section(header: Text(section.month)
                     .font(.headline)
                     .foregroundColor(.gray)) {
-                    ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
-                        TearCard(entry: entry, dataManager: dataManager)
-                            .swipeActions(allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    entryToDelete = entry
-                                    showingDeleteAlert = true
-                                } label: {
-                                    Label("Удалить", systemImage: "trash")
+                        ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
+                            TearCard(entry: entry, dataManager: dataManager)
+                                .swipeActions(allowsFullSwipe: false) {
+                                    Button(role: .destructive) {
+                                        entryToDelete = entry
+                                        showingDeleteAlert = true
+                                    } label: {
+                                        Label("Удалить", systemImage: "trash")
+                                    }
                                 }
-                            }
+                        }
                     }
-                }
             }
         }
         .listStyle(InsetGroupedListStyle())
@@ -79,7 +81,7 @@ struct StatisticsView: View {
     private var monthlyChart: some View {
         VStack(alignment: .leading, spacing: 10) {
             Chart {
-                let monthlyData = dataManager.monthlyDataByIntensity(for: selectedYear)
+                let monthlyData = dataManager.monthlyDataByIntensity(for: selectedYear, emojiId: selectedEmojiId, tagId: selectedTagId)
                 ForEach(monthlyData, id: \.date) { item in
                     ForEach(Array(dataManager.emojiIntensities.enumerated()).reversed(), id: \.element.id) { index, emojiIntensity in
                         if index < item.intensityCounts.count {
@@ -97,21 +99,39 @@ struct StatisticsView: View {
                 AxisMarks(values: .stride(by: .month)) { _ in
                     AxisGridLine()
                     AxisTick()
-                    AxisValueLabel(format: .dateTime.month(.narrow))
+                    AxisValueLabel(format: .dateTime.month(.narrow).locale(Locale(identifier: "ru_RU")))
                 }
             }
         }
     }
     
     private var emojiStats: some View {
-        let stats = dataManager.emojiStatistics(for: selectedYear)
+        //при нажатии на эмодзи другие эмодзи не должны обнуляться, пофиксить
+        let stats = dataManager.emojiStatistics(for: selectedYear, emojiId: selectedEmojiId)
         
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
                     let stat = stats[index]
                     let emojiIntensity = dataManager.emojiIntensities[index]
-                    EmojiStatCard(emoji: stat.emoji, count: stat.count, color: emojiIntensity.color)
+                    EmojiButton(
+                        emoji: stat.emoji,
+                        count: stat.count,
+                        color: emojiIntensity.color,
+                        isSelected: selectedEmojiId == emojiIntensity.id,
+                        action: {
+                            withAnimation {
+                                if selectedEmojiId == emojiIntensity.id {
+                                    selectedEmojiId = nil
+                                } else {
+                                    selectedEmojiId = emojiIntensity.id
+                                    selectedTagId = nil
+                                }
+                            }
+                        },
+                        isCountVisible: true,
+                        fontSize: 28
+                    )
                 }
             }
         }
@@ -119,15 +139,31 @@ struct StatisticsView: View {
     }
     
     private var tagsList: some View {
-        
-        FlowLayout(spacing: 10) {
-            ForEach(dataManager.tagStatistics(for: selectedYear), id: \.tag) { tagStat in
-                TagStatView(tag: tagStat.tag)
+        let stats = dataManager.tagStatistics(for: selectedYear, tagId: selectedTagId)
+        return ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: 10) {
+                ForEach(stats.indices, id: \.self) { index in
+                    let stat = stats[index]
+                    let tag = dataManager.tags[index]
+                    TagButton(
+                        tagName: stat.tag,
+                        isSelected: selectedTagId == tag.id,
+                        action: {
+                            withAnimation {
+                                if selectedTagId == tag.id {
+                                    selectedTagId = nil
+                                } else {
+                                    selectedTagId = tag.id
+                                    selectedEmojiId = nil
+                                }
+                            }
+                        }
+                    )
+                }
             }
         }
-
+        .padding(.horizontal)
     }
-    
     // MARK: - Вспомогательные функции
     
     private func changeYear(by value: Int) {
@@ -135,7 +171,7 @@ struct StatisticsView: View {
     }
     
     private var groupedEntriesForYear: [(month: String, records: [TearEntry])] {
-        let entriesForYear = dataManager.entriesForYear(selectedYear)
+        let entriesForYear = dataManager.entriesForYear(selectedYear, emojiId: selectedEmojiId, tagId: selectedTagId)
         let grouped = Dictionary(grouping: entriesForYear) { entry in
             let formatter = DateFormatter()
             formatter.locale = Locale(identifier: "ru_RU")
@@ -145,6 +181,7 @@ struct StatisticsView: View {
         return grouped.sorted { $0.key < $1.key }
             .map { (month: $0.key.uppercased(), records: $0.value) }
     }
+    
 }
 
 // MARK: - Вспомогательные компоненты
@@ -152,7 +189,6 @@ struct StatisticsView: View {
 private struct YearButton: View {
     let systemName: String
     let action: () -> Void
-    
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
@@ -160,45 +196,6 @@ private struct YearButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .contentShape(Rectangle())
-    }
-}
-
-private struct EmojiStatCard: View {
-    let emoji: String
-    let count: Int
-    let color: Color
-    
-    var body: some View {
-        VStack {
-            Text(emoji)
-                .font(.title)
-            Text("\(count)")
-                .font(.headline)
-                .foregroundColor(.black)
-        }
-        
-        .frame(width: 70, height: 70)
-        .background(Color(.systemBackground))
-        .clipShape(Circle())
-        .padding(5)
-        .background(Color.clear)
-        .shadow(color: .black.opacity(0.15), radius: 5)
-    }
-}
-
-private struct TagStatView: View {
-    let tag: String
-    
-    var body: some View {
-        Text(tag)
-            .font(.subheadline)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                Capsule()
-                    .fill(Color.blue.opacity(0.1))
-            )
-            .foregroundColor(.blue)
     }
 }
 

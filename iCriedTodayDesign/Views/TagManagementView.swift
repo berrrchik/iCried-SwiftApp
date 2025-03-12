@@ -1,10 +1,9 @@
 import SwiftUI
-
 struct TagManagementView: View {
     @ObservedObject var dataManager: TearDataManager
     @State private var newTag = ""
     @State private var showingAlert = false
-    @State private var tagToDelete: String?
+    @State private var tagToDelete: TagItem?
     
     var body: some View {
         List {
@@ -26,7 +25,7 @@ struct TagManagementView: View {
                             .foregroundColor(.blue)
                             .font(.title)
                     }
-                    .disabled(newTag.count < 2) // Минимум # и 1 символ
+                    .disabled(newTag.count < 2)
                 }
             } header: {
                 Text("Добавить тег")
@@ -34,13 +33,13 @@ struct TagManagementView: View {
             }
             
             Section {
-                if dataManager.availableTags.isEmpty {
+                if dataManager.tags.isEmpty {
                     Text("Нет добавленных тегов")
                         .foregroundColor(.gray)
                 } else {
-                    ForEach(dataManager.availableTags.sorted(), id: \.self) { tag in
+                    ForEach(dataManager.tags.sorted(by: { $0.name < $1.name })) { tag in
                         HStack {
-                            Text(tag)
+                            Text(tag.name)
                             Spacer()
                             Button {
                                 tagToDelete = tag
@@ -62,28 +61,23 @@ struct TagManagementView: View {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
                 if let tag = tagToDelete {
-                    dataManager.removeTag(tag)
+                    dataManager.removeTag(tag.id)
                 }
                 tagToDelete = nil
             }
         } message: {
+            //при удалении хештега записи присваивается другой хештег, пофиксить
             if let tag = tagToDelete {
-                Text("Тег \(tag) будет удален из всех записей")
+                Text("Тег \(tag.name) будет удален из всех записей")
             }
         }
     }
     
     private func addTag() {
         let tag = newTag.trimmingCharacters(in: .whitespaces)
-        if tag.count >= 2 { 
+        if tag.count >= 2 {
             dataManager.addTag(tag)
             newTag = ""
         }
-    }
-}
-
-#Preview {
-    NavigationView {
-        TagManagementView(dataManager: TearDataManager())
     }
 }

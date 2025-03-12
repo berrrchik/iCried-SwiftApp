@@ -9,7 +9,7 @@ struct EditTearView: View {
             dataManager: dataManager,
             selectedDate: entry.date,
             selectedEmojiId: entry.emojiId,
-            selectedTags: entry.tags,
+            selectedTagId: entry.tagId,
             note: entry.note,
             title: "Редактировать",
             onSave: { updatedEntry in

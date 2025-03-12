@@ -87,19 +87,19 @@ struct TearLogView: View {
                 Section(header: Text(section.month)
                     .font(.headline)
                     .foregroundColor(.gray)) {
-                    ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
-                        TearCard(entry: entry, dataManager: dataManager)
-                            .swipeActions(allowsFullSwipe: false) {
-                                Button() {
-                                    entryToDelete = entry
-                                    showingDeleteAlert = true
-                                } label: {
-                                    Label("Удалить", systemImage: "trash")
+                        ForEach(section.records) { entry in
+                            TearCard(entry: entry, dataManager: dataManager)
+                                .swipeActions(allowsFullSwipe: false) {
+                                    Button() {
+                                        entryToDelete = entry
+                                        showingDeleteAlert = true
+                                    } label: {
+                                        Label("Удалить", systemImage: "trash")
+                                    }
+                                    .tint(.red)
                                 }
-                                .tint(.red)
-                            }
+                        }
                     }
-                }
             }
         }
         .listStyle(InsetGroupedListStyle())
@@ -107,22 +107,27 @@ struct TearLogView: View {
 }
 
 struct TearCard: View {
-    
     let entry: TearEntry
     @ObservedObject var dataManager: TearDataManager
     @State private var showingEditSheet = false
+    
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "ru_RU")
+        formatter.dateFormat = "d MMMM"
+        return formatter.string(from: entry.date)
+    }
     
     var body: some View {
         Button(action: { showingEditSheet = true }) {
             VStack(alignment: .leading, spacing: 5) {
                 HStack {
                     Text(dataManager.getEmoji(for: entry).emoji)
-                                .font(.title)
+                        .font(.title)
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 5) {
-                            ForEach(Array(entry.tags), id: \.self) { tag in
-                                Text(tag)
-//                                    .font(.caption)
+                            ForEach(Array(arrayLiteral: entry.tagId), id: \.self) { tagId in
+                                Text(dataManager.getTag(for: entry).name)
                                     .font(.subheadline)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
@@ -134,15 +139,13 @@ struct TearCard: View {
                             }
                         }
                     }
-                    Text(entry.date, style: .date)
+                    Text(formattedDate)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
                 Text(entry.note)
                     .font(.subheadline)
                     .foregroundColor(.primary)
-                
             }
             .padding(.vertical, 6)
         }
