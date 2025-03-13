@@ -137,10 +137,13 @@ struct StatisticsView: View {
 
     private var tagsList: some View {
         let stats = dataManager.tagStatistics(for: selectedYear, tagId: selectedTagId)
+        
+        let filteredTags = stats.filter { $0.count > 0 }
+        
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(stats.indices, id: \.self) { index in
-                    let stat = stats[index]
+                ForEach(filteredTags.indices, id: \.self) { index in
+                    let stat = filteredTags[index]
                     let tag = dataManager.tags[index]
                     TagButton(
                         tagName: stat.tag,
