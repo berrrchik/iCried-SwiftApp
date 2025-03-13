@@ -6,7 +6,7 @@ struct TearFormView: View {
     
     @State var selectedDate: Date
     @State var selectedEmojiId: UUID
-    @State var selectedTagId: UUID
+    @State var selectedTagId: UUID?
     @State var note: String
     
     let title: String
@@ -116,7 +116,7 @@ struct TearFormView: View {
             DatePicker("", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
                 .labelsHidden()
-                .padding([.all], 10)
+                .padding([.all], 8)
                 .background(
                     RoundedRectangle(cornerRadius: 15)
                         .fill(Color(.systemBackground))

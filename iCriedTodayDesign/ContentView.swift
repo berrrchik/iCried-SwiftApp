@@ -127,15 +127,17 @@ struct TearCard: View {
                     ScrollView(.horizontal, showsIndicators: false) {
                         LazyHStack(spacing: 5) {
                             ForEach(Array(arrayLiteral: entry.tagId), id: \.self) { tagId in
-                                Text(dataManager.getTag(for: entry).name)
-                                    .font(.subheadline)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        Capsule()
-                                            .fill(Color.blue.opacity(0.1))
-                                    )
-                                    .foregroundColor(.blue)
+                                if let tag = dataManager.getTag(for: entry) {
+                                    Text(tag.name)
+                                        .font(.subheadline)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(
+                                            Capsule()
+                                                .fill(Color.blue.opacity(0.1))
+                                        )
+                                        .foregroundColor(.blue)
+                                }
                             }
                         }
                     }

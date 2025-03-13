@@ -76,7 +76,6 @@ class TearDataManager: ObservableObject {
     // MARK: - Data Analysis
     
     var groupedEntries: [(month: String, records: [TearEntry])] {
-        print("Начинаем группировку записей: \(entries.count) элементов")
         
         let calendar = Calendar.current
         let formatter = DateFormatter()
@@ -88,21 +87,12 @@ class TearDataManager: ObservableObject {
             return components
         }
         
-        let sortedGroups = grouped.sorted { $0.key.year! > $1.key.year! || ($0.key.year! == $1.key.year! && $0.key.month! > $1.key.month!) }
+        return grouped.sorted { $0.key.year! > $1.key.year! || ($0.key.year! == $1.key.year! && $0.key.month! > $1.key.month!) }
             .map { (month: formatter.string(from: calendar.date(from: $0.key)!).uppercased(), records: $0.value.sorted(by: { $0.date > $1.date })) }
-        
-        for section in sortedGroups {
-            print("Группа: \(section.month), записей: \(section.records.count)")
-        }
-        
-        return sortedGroups
     }
     
-    func getTag(for entry: TearEntry) -> TagItem {
-        if let tag = tags.first(where: { $0.id == entry.tagId }) {
-            return tag
-        }
-        return tags[0]
+    func getTag(for entry: TearEntry) -> TagItem? {
+        return tags.first(where: { $0.id == entry.tagId })
     }
     
     func entriesForYear(_ year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [TearEntry] {
@@ -154,14 +144,13 @@ class TearDataManager: ObservableObject {
         let yearEntries = entriesForYear(year, tagId: tagId)
         var tagCounts: [UUID: Int] = [:]
         
-        yearEntries.forEach { entry in
-            tagCounts[entry.tagId, default: 0] += 1
+        yearEntries.compactMap { $0.tagId }.forEach { tagId in
+            tagCounts[tagId, default: 0] += 1
         }
         
         return tags.map { tag in
             (tag: tag.name, count: tagCounts[tag.id] ?? 0)
         }
-        
     }
     
     func monthlyDataByIntensity(for year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [(date: Date, intensityCounts: [Int])] {
@@ -198,13 +187,18 @@ class TearDataManager: ObservableObject {
     }
     
     func removeTag(_ tagId: UUID) {
-        if let index = tags.firstIndex(where: { $0.id == tagId }) {
-            tags.remove(at: index)
-            saveTags()
-            save()
+        tags.removeAll { $0.id == tagId }
+        
+        for index in entries.indices {
+            if entries[index].tagId == tagId {
+                entries[index].tagId = nil
+            }
         }
+
+        saveTags()
+        save()
     }
-    
+
     private func saveTags() {
         if let data = try? JSONEncoder().encode(tags) {
             print("💾 Сохранение тегов: \(tags.map { $0.name })")
@@ -224,7 +218,7 @@ class TearDataManager: ObservableObject {
         for (index, entry) in entries.enumerated() {
             var mutableEntry = entry
             if !tags.contains(where: { $0.id == mutableEntry.tagId }) {
-                mutableEntry.tagId = tags[0].id
+                mutableEntry.tagId = nil
                 entries[index] = mutableEntry
             }
         }

@@ -55,15 +55,15 @@
 				<key>location-parameters</key>
 				<dict>
 					<key>EndingColumnNumber</key>
-					<string>33</string>
+					<string>1</string>
 					<key>EndingLineNumber</key>
-					<string>10</string>
+					<string>18</string>
 					<key>StartingColumnNumber</key>
-					<string>33</string>
+					<string>1</string>
 					<key>StartingLineNumber</key>
-					<string>10</string>
+					<string>18</string>
 					<key>Timestamp</key>
-					<string>763497053.577675</string>
+					<string>763592416.051569</string>
 				</dict>
 				<key>rebasable-url</key>
 				<dict>
@@ -81,13 +81,13 @@
 				<key>focused</key>
 				<string></string>
 				<key>leading</key>
-				<string>            selectedDate: Date(),
-            selectedEmojiId: dataManager.emojiIntensities[0].id, 
-            selectedTagId: dataMa</string>
+				<string>        )
+    }
+}</string>
 				<key>trailing</key>
-				<string>nager.tags[0].id, //не должен выбираться первый хештег, пофиксить
-            note: "",
-            title: "Новая запись",
+				<string>
+
+#Preview {
 </string>
 			</dict>
 			<key>type</key>

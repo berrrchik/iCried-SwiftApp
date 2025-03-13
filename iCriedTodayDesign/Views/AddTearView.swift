@@ -8,7 +8,7 @@ struct AddTearView: View {
             dataManager: dataManager,
             selectedDate: Date(),
             selectedEmojiId: dataManager.emojiIntensities[0].id,
-            selectedTagId: dataManager.tags[0].id, //не должен выбираться первый хештег, пофиксить
+            selectedTagId: UUID(),
             note: "",
             title: "Новая запись",
             onSave: { entry in
