@@ -106,9 +106,7 @@ struct StatisticsView: View {
     }
     
     private var emojiStats: some View {
-        //при нажатии на эмодзи другие эмодзи не должны обнуляться, пофиксить
-        let stats = dataManager.emojiStatistics(for: selectedYear, emojiId: selectedEmojiId)
-        
+        let stats = dataManager.emojiStatistics(for: selectedYear)
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
@@ -125,7 +123,6 @@ struct StatisticsView: View {
                                     selectedEmojiId = nil
                                 } else {
                                     selectedEmojiId = emojiIntensity.id
-                                    selectedTagId = nil
                                 }
                             }
                         },
@@ -137,7 +134,7 @@ struct StatisticsView: View {
         }
         .padding(.horizontal)
     }
-    
+
     private var tagsList: some View {
         let stats = dataManager.tagStatistics(for: selectedYear, tagId: selectedTagId)
         return ScrollView(.horizontal, showsIndicators: false) {

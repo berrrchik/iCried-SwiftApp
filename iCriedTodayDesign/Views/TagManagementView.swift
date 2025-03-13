@@ -66,7 +66,6 @@ struct TagManagementView: View {
                 tagToDelete = nil
             }
         } message: {
-            //при удалении хештега записи присваивается другой хештег, пофиксить
             if let tag = tagToDelete {
                 Text("Тег \(tag.name) будет удален из всех записей")
             }
