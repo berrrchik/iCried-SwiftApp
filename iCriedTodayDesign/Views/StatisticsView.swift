@@ -123,6 +123,7 @@ struct StatisticsView: View {
                                     selectedEmojiId = nil
                                 } else {
                                     selectedEmojiId = emojiIntensity.id
+                                    selectedTagId = nil
                                 }
                             }
                         },
@@ -134,35 +135,35 @@ struct StatisticsView: View {
         }
         .padding(.horizontal)
     }
-
+    
     private var tagsList: some View {
-        let stats = dataManager.tagStatistics(for: selectedYear, tagId: selectedTagId)
+        let stats = dataManager.tagStatistics(for: selectedYear)
         
         let filteredTags = stats.filter { $0.count > 0 }
         
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(filteredTags.indices, id: \.self) { index in
-                    let stat = filteredTags[index]
-                    let tag = dataManager.tags[index]
-                    TagButton(
-                        tagName: stat.tag,
-                        isSelected: selectedTagId == tag.id,
-                        action: {
-                            withAnimation {
-                                if selectedTagId == tag.id {
-                                    selectedTagId = nil
-                                } else {
-                                    selectedTagId = tag.id
-                                    selectedEmojiId = nil
+                ForEach(filteredTags.sorted(by: { $0.tag < $1.tag }), id: \.tag) { stat in
+                    if let tag = dataManager.tags.first(where: { $0.name == stat.tag }) {
+                        TagButton(
+                            tagName: stat.tag,
+                            isSelected: selectedTagId == tag.id,
+                            action: {
+                                withAnimation {
+                                    if selectedTagId == tag.id {
+                                        selectedTagId = nil
+                                    } else {
+                                        selectedTagId = tag.id
+                                        selectedEmojiId = nil
+                                    }
                                 }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
+            .padding(.horizontal)
         }
-        .padding(.horizontal)
     }
     // MARK: - Вспомогательные функции
     
