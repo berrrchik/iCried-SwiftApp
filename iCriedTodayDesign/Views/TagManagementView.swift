@@ -1,10 +1,12 @@
 import SwiftUI
+
 struct TagManagementView: View {
     @ObservedObject var dataManager: TearDataManager
     @State private var newTag = ""
     @State private var showingAlert = false
     @State private var tagToDelete: TagItem?
-    
+    @State private var isEditing = false
+
     var body: some View {
         List {
             Section {
@@ -17,7 +19,7 @@ struct TagManagementView: View {
                                 newTag = "#" + newValue.trimmingCharacters(in: .whitespaces)
                             }
                         }
-                    
+
                     Button {
                         addTag()
                     } label: {
@@ -31,14 +33,18 @@ struct TagManagementView: View {
                 Text("Добавить тег")
                     .font(.subheadline)
             }
-            
+
             Section {
                 if dataManager.tags.isEmpty {
                     Text("Нет добавленных тегов")
                         .foregroundColor(.gray)
                 } else {
-                    ForEach(dataManager.tags.sorted(by: { $0.name < $1.name })) { tag in
+                    ForEach(dataManager.tags.sorted(by: { $0.name < $1.name }), id: \.id) { tag in
+                        let index = dataManager.tags.firstIndex(where: { $0.id == tag.id })! + 1
                         HStack {
+                            Text("\(index)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
                             Text(tag.name)
                             Spacer()
                             Button {
@@ -50,10 +56,15 @@ struct TagManagementView: View {
                             }
                         }
                     }
+                    .onMove { indices, destination in
+                        dataManager.moveTag(from: indices, to: destination)
+                    }
                 }
             } header: {
                 Text("Существующие теги")
                     .font(.subheadline)
+            } footer: {
+                isEditing ? Text("Перетащите теги, чтобы изменить их порядок") : nil
             }
         }
         .navigationTitle("Управление тегами")
@@ -70,8 +81,22 @@ struct TagManagementView: View {
                 Text("Тег \(tag.name) будет удален из всех записей")
             }
         }
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                EditButton()
+                    .onChange(of: isEditing) { _ in
+                        dataManager.objectWillChange.send()
+                    }
+            }
+        }
+        .environment(\.editMode, Binding(
+            get: { isEditing ? .active : .inactive },
+            set: { newValue in
+                isEditing = newValue == .active
+            }
+        ))
     }
-    
+
     private func addTag() {
         let tag = newTag.trimmingCharacters(in: .whitespaces)
         if tag.count >= 2 {
@@ -79,4 +104,8 @@ struct TagManagementView: View {
             newTag = ""
         }
     }
+}
+
+#Preview{
+    TagManagementView(dataManager: TearDataManager())
 }

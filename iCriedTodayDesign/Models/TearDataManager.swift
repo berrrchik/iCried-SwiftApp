@@ -199,10 +199,27 @@ class TearDataManager: ObservableObject {
         save()
     }
 
-    private func saveTags() {
+    func saveTags() {
         if let data = try? JSONEncoder().encode(tags) {
             print("💾 Сохранение тегов: \(tags.map { $0.name })")
             UserDefaults.standard.set(data, forKey: "tags")
+        }
+    }
+    
+    func moveTag(from source: IndexSet, to destination: Int) {
+        let oldOrder = tags.map { $0.id }
+        tags.move(fromOffsets: source, toOffset: destination)
+        
+        let newOrder = tags.map { $0.id }
+        let orderChanged = oldOrder != newOrder
+        
+        if orderChanged {
+            objectWillChange.send()
+            saveTags()
+            
+            print("Теги перемещены: \(oldOrder) -> \(newOrder)")
+        } else {
+            print("Порядок эмодзи не изменился")
         }
     }
     
