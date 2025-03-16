@@ -6,7 +6,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            NavigationView {
+            NavigationStack {
                 TearLogView(dataManager: dataManager)
             }
             .tabItem {
@@ -14,7 +14,7 @@ struct ContentView: View {
             }
             .tag(0)
             
-            NavigationView {
+            NavigationStack {
                 StatisticsView(dataManager: dataManager)
             }
             .tabItem {
@@ -22,7 +22,7 @@ struct ContentView: View {
             }
             .tag(1)
             
-            NavigationView {
+            NavigationStack {
                 SettingsView(dataManager: dataManager)
             }
             .tabItem {
