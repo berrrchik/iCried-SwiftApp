@@ -58,7 +58,7 @@ struct StatisticsView: View {
     
     private var yearHeader: some View {
         HStack {
-            Text("\(dataManager.totalEntriesForYear(selectedYear)) Crying Moments")
+            Text("\(filteredEntriesCount) \(formatCryingMoments(count: filteredEntriesCount))")
                 .font(.title2.bold())
             
             Spacer()
@@ -188,6 +188,26 @@ struct StatisticsView: View {
         return grouped.sorted { $0.key < $1.key }
             .map { (month: $0.key.uppercased(), records: $0.value) }
     }
+    
+    func formatCryingMoments(count: Int) -> String {
+        let lastDigit = count % 10
+        let lastTwoDigits = count % 100
+        
+        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
+            return "Моментов грусти"
+        } else if lastDigit == 1 {
+            return "Момент грусти"
+        } else if lastDigit >= 2 && lastDigit <= 4 {
+            return "Момента грусти"
+        } else {
+            return "Моментов грусти"
+        }
+    }
+    
+    private var filteredEntriesCount: Int {
+        dataManager.entriesForYear(selectedYear, emojiId: selectedEmojiId, tagId: selectedTagId).count
+    }
+
 }
 
 // MARK: - Вспомогательные компоненты
