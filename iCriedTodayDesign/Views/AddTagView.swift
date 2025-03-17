@@ -50,3 +50,8 @@ struct AddTagView: View {
     }
 }
 
+#Preview {
+    NavigationStack {
+        AddTagView(dataManager: TearDataManager(), isPresented: .constant(true))
+    }
+}

@@ -55,3 +55,8 @@ struct EditTagView: View {
     }
 }
 
+#Preview {
+    NavigationStack {
+        EditTagView(dataManager: TearDataManager(), isPresented: .constant(true), tag: TagItem(name: "#Одиночество"))
+    }
+}
