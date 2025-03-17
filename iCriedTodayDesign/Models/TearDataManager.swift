@@ -17,12 +17,16 @@ class TearDataManager: ObservableObject {
     ]
     private let fileManager = FileManager.default
     
-    init() {
-        load()
-        loadTags()
-        loadEmojis()
+    var availableYears: [Int] {
+        Set(entries.map { Calendar.current.component(.year, from: $0.date) }).sorted()
     }
     
+    init() {
+        loadEmojis()
+        loadTags()
+        load()
+    }
+
     // MARK: - File Management
     private static func fileURL() throws -> URL {
         try FileManager.default.url(for: .documentDirectory,
@@ -194,11 +198,10 @@ class TearDataManager: ObservableObject {
                 entries[index].tagId = nil
             }
         }
-
         saveTags()
         save()
     }
-
+    
     func saveTags() {
         if let data = try? JSONEncoder().encode(tags) {
             print("💾 Сохранение тегов: \(tags.map { $0.name })")
@@ -284,6 +287,7 @@ class TearDataManager: ObservableObject {
     private func saveEmojis() {
         if let data = try? JSONEncoder().encode(emojiIntensities) {
             UserDefaults.standard.set(data, forKey: "emojiIntensities")
+            print("Saving emojis:", emojiIntensities.map { $0.emoji })
         }
     }
     
@@ -291,6 +295,16 @@ class TearDataManager: ObservableObject {
         if let data = UserDefaults.standard.data(forKey: "emojiIntensities"),
            let emojis = try? JSONDecoder().decode([EmojiIntensity].self, from: data) {
             emojiIntensities = emojis
+            print("Emojis loaded from UserDefaults:", emojiIntensities.map { $0.emoji })
         }
+    }
+    
+    private func updateEntriesWithLoadedEmojis() {
+        for index in entries.indices {
+            if !emojiIntensities.contains(where: { $0.id == entries[index].emojiId }) {
+                entries[index].emojiId = emojiIntensities.first?.id ?? UUID()
+            }
+        }
+        save()
     }
 }

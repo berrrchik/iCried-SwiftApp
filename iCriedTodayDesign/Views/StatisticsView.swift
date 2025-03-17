@@ -143,7 +143,7 @@ struct StatisticsView: View {
         
         return ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(filteredTags.sorted(by: { $0.tag < $1.tag }), id: \.tag) { stat in
+                ForEach((filteredTags), id: \.tag) { stat in
                     if let tag = dataManager.tags.first(where: { $0.name == stat.tag }) {
                         TagButton(
                             tagName: stat.tag,
@@ -165,10 +165,16 @@ struct StatisticsView: View {
             .padding(.horizontal)
         }
     }
+    
     // MARK: - Вспомогательные функции
     
     private func changeYear(by value: Int) {
-        selectedYear += value
+        guard let currentIndex = dataManager.availableYears.firstIndex(of: selectedYear) else { return }
+        
+        let newIndex = currentIndex + value
+        if newIndex >= 0, newIndex < dataManager.availableYears.count {
+            selectedYear = dataManager.availableYears[newIndex]
+        }
     }
     
     private var groupedEntriesForYear: [(month: String, records: [TearEntry])] {
@@ -182,7 +188,6 @@ struct StatisticsView: View {
         return grouped.sorted { $0.key < $1.key }
             .map { (month: $0.key.uppercased(), records: $0.value) }
     }
-    
 }
 
 // MARK: - Вспомогательные компоненты
@@ -193,7 +198,7 @@ private struct YearButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: systemName)
-                .foregroundColor(.orange)
+                .foregroundColor(.blue)
         }
         .buttonStyle(PlainButtonStyle())
         .contentShape(Rectangle())
