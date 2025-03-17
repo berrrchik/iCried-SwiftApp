@@ -1,132 +1,56 @@
 import SwiftUI
 
 struct EmojiManagementView: View {
+    @Environment(\.dismiss) var dismiss
     @ObservedObject var dataManager: TearDataManager
     @State private var newEmoji = ""
     @State private var selectedColor = Color.blue
     @State private var showingAlert = false
     @State private var emojiToDeleteIndex: Int?
     @State private var editingEmojiIndex: Int?
-    @State private var showingEditSheet = false
+    @State private var showingAddEmojiSheet = false
+    @State private var showingEditEmojiSheet = false
     @State private var isEditing = false
+    @State private var emojiToEdit: EmojiIntensity?
+    @State private var emojiToDelete: EmojiIntensity?
     
     var body: some View {
-        List {
-            Section {
-                VStack(spacing: 16) {
-                    HStack(spacing: 12) {
-                        TextField("", text: $newEmoji)
-                            .font(.system(size: 30))
-                            .frame(width: 80)
-                            .multilineTextAlignment(.center)
-                            .padding(8)
-                            .background(Color(.systemGray6))
-                            .cornerRadius(12)
-                            .onChange(of: newEmoji) { newValue in
-                                if newValue.count > 1 {
-                                    newEmoji = String(newValue.prefix(1))
-                                }
-                            }
-                        
-                        VStack(alignment: .leading) {
-                            
-                            ColorPicker("", selection: $selectedColor, supportsOpacity: false)
-                                .labelsHidden()
-                                .scaleEffect(CGSize(width: 1.2, height: 1.2))
-                        }
-                        
-                        Spacer()
-                        
-                        Button {
-                            withAnimation {
-                                addEmoji()
-                            }
-                        } label: {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 30))
-                                .foregroundColor(.blue)
-                        }
-                        .disabled(newEmoji.isEmpty)
-                    }
-                }
-                .padding(.vertical, 1)
-            } header: {
-                Text("Добавить эмодзи")
-            } footer: {
-                Text("Выберите один эмодзи и цвет для него")
+        NavigationStack {
+            VStack(spacing: 16) {
+                existingEmojiSection
             }
-            
-            Section {
-                if dataManager.emojiIntensities.isEmpty {
-                    Text("Нет добавленных эмодзи")
-                        .foregroundColor(.gray)
-                        .frame(maxWidth: .infinity, alignment: .center)
-                        .padding()
-                } else {
-                    ForEach(dataManager.emojiIntensities) { emoji in
-                        if isEditing {
-                            HStack(spacing: 16) {
-                                Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
-                                    .foregroundColor(.secondary)
-                                    .font(.caption)
-                                    .frame(width: 24)
-                                
-                                EmojiCell(emoji: emoji)
-                            }
-                        } else {
-                            NavigationLink {
-                                if let index = dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id }) {
-                                    EditEmojiView(dataManager: dataManager, emojiIndex: index)
-                                }
-                            } label: {
-                                HStack(spacing: 16) {
-                                    Text("\(dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id })! + 1)")
-                                        .foregroundColor(.secondary)
-                                        .font(.caption)
-                                        .frame(width: 24)
-                                    
-                                    EmojiCell(emoji: emoji)
-                                }
-                            }
-                            .swipeActions(allowsFullSwipe: false) {
-                                Button(role: .destructive) {
-                                    if let index = dataManager.emojiIntensities.firstIndex(where: { $0.id == emoji.id }) {
-                                        emojiToDeleteIndex = index
-                                        showingAlert = true
-                                    }
-                                } label: {
-                                    Label("Удалить", systemImage: "trash")
-                                }
-                                .disabled(dataManager.emojiIntensities.count <= 1)
-                            }
-                        }
-                    }
-                    .onMove { indices, destination in
-                        dataManager.moveEmojiIntensity(from: indices, to: destination)
-                    }
-                }
-            } header: {
-                Text("Существующие эмодзи")
-            } footer: {
-                isEditing ? Text("Перетащите эмодзи, чтобы изменить их порядок") : nil
-            }
+            .padding(.vertical, 1)
         }
         .navigationTitle("Управление эмодзи")
+        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton()
-                    .onChange(of: isEditing) { _ in
-                        // Обновляем UI при изменении режима редактирования
-                        dataManager.objectWillChange.send()
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    HStack(spacing:4) {
+                        Image(systemName: "chevron.left")
+                            .font(.title3)
+                            .fontWeight(.semibold)
+                        Text("Назад")
                     }
+                }
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { showingAddEmojiSheet = true } label: {
+                    Image(systemName: "plus.circle.fill").font(.title2)
+                }
             }
         }
-        .environment(\.editMode, Binding(
-            get: { isEditing ? .active : .inactive },
-            set: { newValue in
-                isEditing = newValue == .active
+        .sheet(isPresented: $showingAddEmojiSheet) {
+            NavigationStack {
+                AddEmojiView(dataManager: dataManager, isPresented: $showingAddEmojiSheet)
             }
-        ))
+        }
+        .sheet(item: $emojiToEdit) { emoji in
+            EditEmojiView(dataManager: dataManager, isPresented: $showingEditEmojiSheet, emojiIntensity: emoji)
+        }
         .alert("Удалить эмодзи?", isPresented: $showingAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
@@ -138,6 +62,58 @@ struct EmojiManagementView: View {
         } message: {
             Text("Эмодзи будет удален из всех записей")
         }
+        .environment(\.editMode, Binding(
+            get: { isEditing ? .active : .inactive },
+            set: { newValue in
+                isEditing = newValue == .active
+            }
+        ))
+    }
+    
+    private var existingEmojiSection: some View {
+        List {
+            Section(header: customHeader, footer: footerView) {
+                if dataManager.emojiIntensities.isEmpty {
+                    Text("Нет добавленных эмодзи")
+                        .foregroundColor(.gray)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .padding()
+                } else {
+                    ForEach(dataManager.emojiIntensities.indices, id: \.self) { index in
+                        let emoji = dataManager.emojiIntensities[index]
+                        HStack(spacing: 16) {
+                            Text("\(index + 1)")
+                                .foregroundColor(.secondary)
+                                .font(.caption)
+                                .frame(width: 24)
+                            EmojiCell(emoji: emoji)
+                            Spacer()
+                            if !isEditing {
+                                Button {
+                                    emojiToEdit = emoji
+                                    showingEditEmojiSheet = true
+                                } label: {
+                                    Image(systemName: "pencil")
+                                        .foregroundColor(.white)
+                                }
+                            }
+                        }
+                        .swipeActions(allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                emojiToDeleteIndex = index
+                                showingAlert = true
+                            } label: {
+                                Label("Удалить", systemImage: "trash")
+                            }
+                            .disabled(dataManager.emojiIntensities.count <= 1)
+                        }
+                    }
+                    .onMove { indices, destination in
+                        dataManager.moveEmojiIntensity(from: indices, to: destination)
+                    }
+                }
+            }
+        }
     }
     
     private func addEmoji() {
@@ -148,6 +124,34 @@ struct EmojiManagementView: View {
             selectedColor = .blue
         }
     }
+    
+    private var customHeader: some View {
+        HStack {
+            Text("Эмодзи")
+                .font(.headline)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            Spacer()
+            Button(action: {
+                isEditing.toggle()
+            }) {
+                Text(isEditing ? "Готово" : "Редактировать")
+                    .foregroundColor(.blue)
+                    .font(.subheadline)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+            }
+        }
+        .padding(.horizontal)
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var footerView: some View {
+        Group {
+            if isEditing {
+                Text("Перетащите эмодзи, чтобы изменить их порядок")
+            }
+        }
+    }
+    
 }
 
 private struct EmojiCell: View {
