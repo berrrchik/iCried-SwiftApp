@@ -65,7 +65,7 @@ struct TearFormView: View {
     
     private var tagsSection: some View {
         VStack(alignment: .leading, spacing: 15) {
-            Text("Причина")
+            Text("Какая причина?")
                 .font(.headline)
             
             FlowLayout(spacing: 12) {
