@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		571049112D874CC0002AA105 /* AddTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571049102D874CC0002AA105 /* AddTagView.swift */; };
+		571049132D874CE1002AA105 /* EditTagView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571049122D874CE1002AA105 /* EditTagView.swift */; };
+		571049152D8755F1002AA105 /* AddEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 571049142D8755F1002AA105 /* AddEmojiView.swift */; };
 		572787BE2D80B56B00639424 /* TagItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 572787BD2D80B56B00639424 /* TagItem.swift */; };
 		572787C02D820AA700639424 /* EmojiButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 572787BF2D820AA700639424 /* EmojiButton.swift */; };
 		5739682A2D70C03500679200 /* AddTearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573968282D70C03500679200 /* AddTearView.swift */; };
@@ -49,6 +52,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		571049102D874CC0002AA105 /* AddTagView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddTagView.swift; sourceTree = "<group>"; };
+		571049122D874CE1002AA105 /* EditTagView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTagView.swift; sourceTree = "<group>"; };
+		571049142D8755F1002AA105 /* AddEmojiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddEmojiView.swift; sourceTree = "<group>"; };
 		572787BD2D80B56B00639424 /* TagItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TagItem.swift; sourceTree = "<group>"; };
 		572787BF2D820AA700639424 /* EmojiButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiButton.swift; sourceTree = "<group>"; };
 		573968282D70C03500679200 /* AddTearView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddTearView.swift; sourceTree = "<group>"; };
@@ -177,11 +183,14 @@
 				573968322D70F12500679200 /* SettingsView.swift */,
 				573968372D749B2700679200 /* EmojiManagementView.swift */,
 				573968392D749EF100679200 /* EditEmojiView.swift */,
-				573968312D70F12500679200 /* TagManagementView.swift */,
+				571049142D8755F1002AA105 /* AddEmojiView.swift */,
 				573968292D70C03500679200 /* TearFormView.swift */,
 				573968282D70C03500679200 /* AddTearView.swift */,
 				57AE18F52D66782D002A3FDB /* EditTearView.swift */,
 				57DE818C2D66651A0097709F /* StatisticsView.swift */,
+				573968312D70F12500679200 /* TagManagementView.swift */,
+				571049102D874CC0002AA105 /* AddTagView.swift */,
+				571049122D874CE1002AA105 /* EditTagView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -330,13 +339,16 @@
 				57DE819B2D66651A0097709F /* TearDataManager.swift in Sources */,
 				5739682B2D70C03500679200 /* TearFormView.swift in Sources */,
 				572787BE2D80B56B00639424 /* TagItem.swift in Sources */,
+				571049112D874CC0002AA105 /* AddTagView.swift in Sources */,
 				57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */,
 				5739682A2D70C03500679200 /* AddTearView.swift in Sources */,
 				57DE81972D66651A0097709F /* StatisticsView.swift in Sources */,
 				5739683A2D749EF100679200 /* EditEmojiView.swift in Sources */,
 				573968362D749B1300679200 /* EmojiIntensity.swift in Sources */,
+				571049152D8755F1002AA105 /* AddEmojiView.swift in Sources */,
 				57DE819C2D66651A0097709F /* TearEntry.swift in Sources */,
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
+				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
 				573968382D749B2700679200 /* EmojiManagementView.swift in Sources */,
 				5739682F2D70DE1200679200 /* FlowLayout.swift in Sources */,
