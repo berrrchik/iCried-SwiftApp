@@ -15,6 +15,7 @@ struct TagManagementView: View {
             VStack() {
                 existingTagsSection
             }
+            .padding(.vertical, 1)
             .navigationTitle("Управление тегами")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
