@@ -107,6 +107,36 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		571049162D899397002AA105 /* Tags */ = {
+			isa = PBXGroup;
+			children = (
+				573968312D70F12500679200 /* TagManagementView.swift */,
+				571049102D874CC0002AA105 /* AddTagView.swift */,
+				571049122D874CE1002AA105 /* EditTagView.swift */,
+			);
+			path = Tags;
+			sourceTree = "<group>";
+		};
+		571049172D8993A0002AA105 /* Emojis */ = {
+			isa = PBXGroup;
+			children = (
+				573968372D749B2700679200 /* EmojiManagementView.swift */,
+				571049142D8755F1002AA105 /* AddEmojiView.swift */,
+				573968392D749EF100679200 /* EditEmojiView.swift */,
+			);
+			path = Emojis;
+			sourceTree = "<group>";
+		};
+		571049182D89940A002AA105 /* TearRecord */ = {
+			isa = PBXGroup;
+			children = (
+				573968292D70C03500679200 /* TearFormView.swift */,
+				573968282D70C03500679200 /* AddTearView.swift */,
+				57AE18F52D66782D002A3FDB /* EditTearView.swift */,
+			);
+			path = TearRecord;
+			sourceTree = "<group>";
+		};
 		5739682C2D70DDEB00679200 /* Components */ = {
 			isa = PBXGroup;
 			children = (
@@ -179,18 +209,12 @@
 		57DE818D2D66651A0097709F /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				571049182D89940A002AA105 /* TearRecord */,
 				5739682C2D70DDEB00679200 /* Components */,
+				571049172D8993A0002AA105 /* Emojis */,
+				571049162D899397002AA105 /* Tags */,
 				573968322D70F12500679200 /* SettingsView.swift */,
-				573968372D749B2700679200 /* EmojiManagementView.swift */,
-				573968392D749EF100679200 /* EditEmojiView.swift */,
-				571049142D8755F1002AA105 /* AddEmojiView.swift */,
-				573968292D70C03500679200 /* TearFormView.swift */,
-				573968282D70C03500679200 /* AddTearView.swift */,
-				57AE18F52D66782D002A3FDB /* EditTearView.swift */,
 				57DE818C2D66651A0097709F /* StatisticsView.swift */,
-				573968312D70F12500679200 /* TagManagementView.swift */,
-				571049102D874CC0002AA105 /* AddTagView.swift */,
-				571049122D874CE1002AA105 /* EditTagView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
