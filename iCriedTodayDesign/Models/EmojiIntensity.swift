@@ -1,7 +1,9 @@
 import SwiftUI
+import SwiftData
 
-struct EmojiIntensity: Identifiable, Codable, Equatable {
-    var id = UUID()
+@Model
+final class EmojiIntensity {
+    var id: UUID
     var emoji: String
     var colorHex: String
     var opacity: Double
@@ -11,6 +13,7 @@ struct EmojiIntensity: Identifiable, Codable, Equatable {
     }
     
     init(emoji: String, color: Color, opacity: Double = 1.0) {
+        self.id = UUID()
         self.emoji = emoji
         self.colorHex = color.toHex() ?? "#0000FF"
         self.opacity = opacity

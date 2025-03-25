@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct EditTearView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     let entry: TearEntry
     
     var body: some View {

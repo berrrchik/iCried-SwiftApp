@@ -1,8 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct TagManagementView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @State private var showingAddTagSheet = false
     @State private var showingEditTagSheet = false
     @State private var tagToEdit: TagItem?
@@ -65,7 +66,6 @@ struct TagManagementView: View {
                     isEditing = newValue == .active
                 }
             ))
-            
         }
     }
     
@@ -139,8 +139,8 @@ struct TagManagementView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        TagManagementView(dataManager: TearDataManager())
-    }
-}
+//#Preview {
+//    NavigationStack {
+//        TagManagementView(dataManager: TearDataManager(modelContext: ModelContext(ModelContainer())))
+//    }
+//}

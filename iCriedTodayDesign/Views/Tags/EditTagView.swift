@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct EditTagView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @Environment(\.dismiss) var dismiss
     @Binding var isPresented: Bool
     var tag: TagItem
@@ -48,15 +49,18 @@ struct EditTagView: View {
                 var updatedTagItem = tag
                 updatedTagItem.name = updatedTag
                 dataManager.tags[index] = updatedTagItem
-                dataManager.saveTags()
+                dataManager.save()
                 isPresented = false
             }
         }
     }
 }
 
-#Preview {
-    NavigationStack {
-        EditTagView(dataManager: TearDataManager(), isPresented: .constant(true), tag: TagItem(name: "#Одиночество"))
-    }
-}
+//#Preview {
+//    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//    let container = try! ModelContainer(for: TagItem.self, EmojiIntensity.self, TearEntry.self, configurations: config)
+//    
+//    NavigationStack {
+//        EditTagView(dataManager: TearDataManager(modelContext: ModelContext(container)), isPresented: .constant(true), tag: TagItem(name: "хештег"))
+//    }
+//}

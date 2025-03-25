@@ -1,8 +1,14 @@
 import SwiftUI
+import SwiftData
 
 struct ContentView: View {
-    @StateObject private var dataManager = TearDataManager()
+    @Environment(\.modelContext) private var modelContext
+    @State private var dataManager: TearDataManager
     @State private var selectedTab = 0
+    
+    init(modelContext: ModelContext) {
+        _dataManager = State(initialValue: TearDataManager(modelContext: modelContext))
+    }
     
     var body: some View {
         TabView(selection: $selectedTab) {
@@ -31,16 +37,20 @@ struct ContentView: View {
             .tag(2)
         }
         .onAppear {
-            dataManager.load()
+//            dataManager.load()
         }
     }
 }
 
 struct TearLogView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @State private var showingAddTear = false
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
+    
+    init(dataManager: TearDataManager) {
+        self.dataManager = dataManager
+    }
     
     var body: some View {
         VStack(spacing: -5) {
@@ -108,8 +118,13 @@ struct TearLogView: View {
 
 struct TearCard: View {
     let entry: TearEntry
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @State private var showingEditSheet = false
+    
+    init(entry: TearEntry, dataManager: TearDataManager) {
+        self.entry = entry
+        self.dataManager = dataManager
+    }
     
     private var formattedDate: String {
         let formatter = DateFormatter()
@@ -158,6 +173,11 @@ struct TearCard: View {
     }
 }
 
-#Preview {
-    ContentView()
-}
+//#Preview {
+//    do {
+//        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
+//        return ContentView(modelContext: ModelContext(container))
+//    } catch {
+//        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
+//    }
+//}

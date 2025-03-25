@@ -1,8 +1,10 @@
 import SwiftUI
+import SwiftData
+
 struct TearFormView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var dataManager: TearDataManager
-    
+    @Bindable var dataManager: TearDataManager
+
     @State var selectedDate: Date
     @State var selectedEmojiId: UUID
     @State var selectedTagId: UUID?

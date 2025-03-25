@@ -1,8 +1,9 @@
 import SwiftUI
+import SwiftData
 import Charts
 
 struct StatisticsView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
@@ -225,8 +226,8 @@ private struct YearButton: View {
     }
 }
 
-#Preview {
-    NavigationView {
-        StatisticsView(dataManager: TearDataManager())
-    }
-}
+//#Preview {
+//    NavigationView {
+//        StatisticsView(dataManager: TearDataManager())
+//    }
+//}

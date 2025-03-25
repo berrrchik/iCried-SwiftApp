@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct AddTearView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     
     var body: some View {
         TearFormView(
@@ -18,6 +19,6 @@ struct AddTearView: View {
     }
 }
 
-#Preview {
-    AddTearView(dataManager: TearDataManager())
-}
+//#Preview {
+//    AddTearView(dataManager: TearDataManager(modelContext: ModelContext()))
+//}

@@ -1,10 +1,11 @@
 import SwiftUI
+import SwiftData
+
 struct SettingsView: View {
-    @ObservedObject var dataManager: TearDataManager
-    
+    @Bindable var dataManager: TearDataManager
+
     var body: some View {
         List {
-            
             Section {
                 NavigationLink(destination: TagManagementView(dataManager: dataManager)) {
                     Label("Управление тегами", systemImage: "tag")

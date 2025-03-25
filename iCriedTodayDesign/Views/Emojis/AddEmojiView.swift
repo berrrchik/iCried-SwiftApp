@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct AddEmojiView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @Binding var isPresented: Bool
     @State private var newEmoji = ""
     @State private var selectedColor = Color.blue
@@ -86,8 +87,8 @@ struct AddEmojiView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        AddEmojiView(dataManager: TearDataManager(), isPresented: .constant(true))
-    }
-}
+//#Preview {
+//    NavigationStack {
+//        AddEmojiView(dataManager: TearDataManager(modelContext: ModelContext(ModelContainer())), isPresented: .constant(true))
+//    }
+//}

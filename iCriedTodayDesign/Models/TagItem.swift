@@ -1,10 +1,13 @@
 import Foundation
+import SwiftData
 
-struct TagItem: Identifiable, Codable, Equatable {
-    var id = UUID()
+@Model
+final class TagItem {
+    var id: UUID
     var name: String
     
     init(name: String) {
+        self.id = UUID()
         self.name = name
     }
 } 

@@ -1,4 +1,5 @@
 import SwiftUI
+import SwiftData
 
 struct EmojiButton: View {
     let emoji: String

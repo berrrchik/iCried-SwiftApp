@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct EditEmojiView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @Environment(\.dismiss) var dismiss
     @Binding var isPresented: Bool
     var emojiIntensity: EmojiIntensity
@@ -108,11 +109,11 @@ struct EditEmojiView: View {
     }
 }
 
-struct EditEmojiView_Previews: PreviewProvider {
-    static var previews: some View {
-        let mockEmojiIntensity = EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.8)
-        let mockDataManager = TearDataManager()
-        return EditEmojiView(dataManager: mockDataManager, isPresented: .constant(true), emojiIntensity: mockEmojiIntensity)
-    }
-}
+//struct EditEmojiView_Previews: PreviewProvider {
+//    static var previews: some View {
+//        let mockEmojiIntensity = EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.8)
+//        let mockDataManager = TearDataManager(modelContext: ModelContext(ModelContainer()))
+//        return EditEmojiView(dataManager: mockDataManager, isPresented: .constant(true), emojiIntensity: mockEmojiIntensity)
+//    }
+//}
 

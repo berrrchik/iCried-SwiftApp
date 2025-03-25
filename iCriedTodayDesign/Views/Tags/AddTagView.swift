@@ -1,7 +1,8 @@
 import SwiftUI
+import SwiftData
 
 struct AddTagView: View {
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @Binding var isPresented: Bool
     @State private var newTag = ""
     
@@ -50,8 +51,11 @@ struct AddTagView: View {
     }
 }
 
-#Preview {
-    NavigationStack {
-        AddTagView(dataManager: TearDataManager(), isPresented: .constant(true))
-    }
-}
+//#Preview {
+//    let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//    let container = try! ModelContainer(for: TagItem.self, EmojiIntensity.self, TearEntry.self, configurations: config)
+//    
+//    return NavigationStack {
+//        AddTagView(dataManager: TearDataManager(modelContext: ModelContext(container)), isPresented: .constant(true))
+//    }
+//}

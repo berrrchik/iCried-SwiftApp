@@ -1,73 +1,82 @@
 import Foundation
 import SwiftUI
+import SwiftData
 
-class TearDataManager: ObservableObject {
-    @Published var entries: [TearEntry] = []
-    @Published var tags: [TagItem] = [
-        TagItem(name: "#Здоровье"),
-        TagItem(name: "#Одиночество"),
-        TagItem(name: "#Работа"),
-        TagItem(name: "#Семья"),
-        TagItem(name: "#Фильмы")
-    ]
-    @Published var emojiIntensities: [EmojiIntensity] = [
-        EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
-        EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
-        EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0)
-    ]
-    private let fileManager = FileManager.default
+@Observable
+class TearDataManager {
+    private var modelContext: ModelContext
+    
+    var entries: [TearEntry] = []
+    var tags: [TagItem] = []
+    var emojiIntensities: [EmojiIntensity] = []
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        loadInitialData()
+    }
+    
+    private func loadInitialData() {
+        do {
+            // Загрузка эмодзи
+            let emojiDescriptor = FetchDescriptor<EmojiIntensity>()
+            emojiIntensities = try modelContext.fetch(emojiDescriptor)
+            
+            if emojiIntensities.isEmpty {
+                // Добавляем начальные эмодзи
+                let defaultEmojis = [
+                    EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
+                    EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
+                    EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0)
+                ]
+                
+                for emoji in defaultEmojis {
+                    modelContext.insert(emoji)
+                    emojiIntensities.append(emoji)
+                }
+            }
+            
+            // Загрузка тегов
+            let tagDescriptor = FetchDescriptor<TagItem>()
+            tags = try modelContext.fetch(tagDescriptor)
+            
+            if tags.isEmpty {
+                // Добавляем начальные теги
+                let defaultTags = [
+                    "#Здоровье", "#Одиночество", "#Работа",
+                    "#Семья", "#Фильмы"
+                ].map { TagItem(name: $0) }
+                
+                for tag in defaultTags {
+                    modelContext.insert(tag)
+                    tags.append(tag)
+                }
+            }
+            
+            // Загрузка записей
+            let entryDescriptor = FetchDescriptor<TearEntry>()
+            entries = try modelContext.fetch(entryDescriptor)
+            
+        } catch {
+            print("Ошибка при загрузке данных: \(error)")
+        }
+    }
     
     var availableYears: [Int] {
         Set(entries.map { Calendar.current.component(.year, from: $0.date) }).sorted()
     }
     
-    init() {
-        loadEmojis()
-        loadTags()
-        load()
-    }
-
-    // MARK: - File Management
-    private static func fileURL() throws -> URL {
-        try FileManager.default.url(for: .documentDirectory,
-                                    in: .userDomainMask,
-                                    appropriateFor: nil,
-                                    create: false)
-        .appendingPathComponent("tearEntries.data")
-    }
-    
-    // MARK: - Data Operations
-    func load() {
-        do {
-            let fileURL = try TearDataManager.fileURL()
-            guard let data = try? Data(contentsOf: fileURL) else { return }
-            entries = try JSONDecoder().decode([TearEntry].self, from: data)
-        } catch {
-            print("Ошибка загрузки данных: \(error)")
-        }
-    }
-    
-    func save() {
-        do {
-            let data = try JSONEncoder().encode(entries)
-            let outfile = try TearDataManager.fileURL()
-            try data.write(to: outfile)
-        } catch {
-            print("Ошибка сохранения данных: \(error)")
-        }
-    }
-    
     // MARK: - Entry Management
+    
     func addEntry(_ entry: TearEntry) {
+        modelContext.insert(entry)
         entries.append(entry)
         save()
     }
     
     func deleteEntry(_ entry: TearEntry) {
-        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
-            entries.remove(at: index)
-            save()
-        }
+        modelContext.delete(entry)
+        entries.removeAll { $0.id == entry.id }
+        save()
     }
     
     func updateEntry(_ entry: TearEntry) {
@@ -76,6 +85,88 @@ class TearDataManager: ObservableObject {
             save()
         }
     }
+    
+    // MARK: - Tag Management
+    
+    func addTag(_ name: String) {
+        let tag = TagItem(name: name)
+        modelContext.insert(tag)
+        tags.append(tag)
+        save()
+    }
+    
+    func removeTag(_ tagId: UUID) {
+        if let tag = tags.first(where: { $0.id == tagId }) {
+            modelContext.delete(tag)
+            tags.removeAll { $0.id == tagId }
+            
+            // Обновляем записи, где использовался этот тег
+            entries.forEach { entry in
+                if entry.tagId == tagId {
+                    entry.tagId = nil
+                }
+            }
+            save()
+        }
+    }
+    
+    func moveTag(from source: IndexSet, to destination: Int) {
+        let oldOrder = tags.map { $0.id }
+        tags.move(fromOffsets: source, toOffset: destination)
+        let newOrder = tags.map { $0.id }
+        
+        if oldOrder != newOrder {
+//            objectWillChange.send()
+            save()
+            print("Теги перемещены: \(oldOrder) -> \(newOrder)")
+        } else {
+            print("Порядок тегов не изменился")
+        }
+    }
+    
+    // MARK: - Emoji Management
+    
+    func addEmojiIntensity(_ emoji: EmojiIntensity) {
+        modelContext.insert(emoji)
+        emojiIntensities.append(emoji)
+        save()
+    }
+    
+    func removeEmojiIntensity(at index: Int) {
+        guard index >= 0 && index < emojiIntensities.count else { return }
+        let emoji = emojiIntensities[index]
+        modelContext.delete(emoji)
+        emojiIntensities.remove(at: index)
+        save()
+    }
+    
+    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
+        guard index >= 0 && index < emojiIntensities.count else { return }
+        
+        let originalEmoji = emojiIntensities[index]
+        
+        // Обновляем изменяемые свойства напрямую
+        originalEmoji.emoji = updatedEmoji.emoji
+        originalEmoji.colorHex = updatedEmoji.colorHex
+        originalEmoji.opacity = updatedEmoji.opacity
+        
+        save()
+    }
+
+    func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
+        let oldOrder = emojiIntensities.map { $0.id }
+        emojiIntensities.move(fromOffsets: source, toOffset: destination)
+        let newOrder = emojiIntensities.map { $0.id }
+        
+        if oldOrder != newOrder {
+//            objectWillChange.send()
+            save()
+            print("Эмодзи перемещены: \(oldOrder) -> \(newOrder)")
+        } else {
+            print("Порядок эмодзи не изменился")
+        }
+    }
+
     
     // MARK: - Data Analysis
     
@@ -182,129 +273,11 @@ class TearDataManager: ObservableObject {
         }
     }
     
-    
-    // MARK: - Tag Management
-    func addTag(_ name: String) {
-        let tag = TagItem(name: name)
-        tags.append(tag)
-        saveTags()
-    }
-    
-    func removeTag(_ tagId: UUID) {
-        tags.removeAll { $0.id == tagId }
-        
-        for index in entries.indices {
-            if entries[index].tagId == tagId {
-                entries[index].tagId = nil
-            }
+    func save() {
+        do {
+            try modelContext.save()
+        } catch {
+            print("Ошибка при сохранении: \(error)")
         }
-        saveTags()
-        save()
-    }
-    
-    func saveTags() {
-        if let data = try? JSONEncoder().encode(tags) {
-            print("💾 Сохранение тегов: \(tags.map { $0.name })")
-            UserDefaults.standard.set(data, forKey: "tags")
-        }
-    }
-    
-    func moveTag(from source: IndexSet, to destination: Int) {
-        let oldOrder = tags.map { $0.id }
-        tags.move(fromOffsets: source, toOffset: destination)
-        
-        let newOrder = tags.map { $0.id }
-        let orderChanged = oldOrder != newOrder
-        
-        if orderChanged {
-            objectWillChange.send()
-            saveTags()
-            
-            print("Теги перемещены: \(oldOrder) -> \(newOrder)")
-        } else {
-            print("Порядок эмодзи не изменился")
-        }
-    }
-    
-    private func loadTags() {
-        if let data = UserDefaults.standard.data(forKey: "tags"),
-           let loadedTags = try? JSONDecoder().decode([TagItem].self, from: data) {
-            tags = loadedTags
-            print("Tags loaded from UserDefaults: \(tags.map { $0.name })")
-        }
-    }
-    
-    private func updateEntriesWithLoadedTags() {
-        for (index, entry) in entries.enumerated() {
-            var mutableEntry = entry
-            if !tags.contains(where: { $0.id == mutableEntry.tagId }) {
-                mutableEntry.tagId = nil
-                entries[index] = mutableEntry
-            }
-        }
-        save()
-    }
-    
-    // MARK: - Emoji Management
-    func addEmojiIntensity(_ emoji: EmojiIntensity) {
-        emojiIntensities.append(emoji)
-        saveEmojis()
-    }
-    
-    func removeEmojiIntensity(at index: Int) {
-        guard index >= 0 && index < emojiIntensities.count else { return }
-        emojiIntensities.remove(at: index)
-        saveEmojis()
-    }
-    
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
-        guard index >= 0 && index < emojiIntensities.count else { return }
-        let originalId = emojiIntensities[index].id
-        var newEmoji = updatedEmoji
-        newEmoji.id = originalId
-        emojiIntensities[index] = newEmoji
-        saveEmojis()
-    }
-    
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
-        let oldOrder = emojiIntensities.map { $0.id }
-        
-        emojiIntensities.move(fromOffsets: source, toOffset: destination)
-        
-        let newOrder = emojiIntensities.map { $0.id }
-        let orderChanged = oldOrder != newOrder
-        
-        if orderChanged {
-            objectWillChange.send()
-            saveEmojis()
-            
-            print("Эмодзи перемещены: \(oldOrder) -> \(newOrder)")
-        } else {
-            print("Порядок эмодзи не изменился")
-        }
-    }
-    
-    private func saveEmojis() {
-        if let data = try? JSONEncoder().encode(emojiIntensities) {
-            UserDefaults.standard.set(data, forKey: "emojiIntensities")
-            print("Saving emojis:", emojiIntensities.map { $0.emoji })
-        }
-    }
-    
-    private func loadEmojis() {
-        if let data = UserDefaults.standard.data(forKey: "emojiIntensities"),
-           let emojis = try? JSONDecoder().decode([EmojiIntensity].self, from: data) {
-            emojiIntensities = emojis
-            print("Emojis loaded from UserDefaults:", emojiIntensities.map { $0.emoji })
-        }
-    }
-    
-    private func updateEntriesWithLoadedEmojis() {
-        for index in entries.indices {
-            if !emojiIntensities.contains(where: { $0.id == entries[index].emojiId }) {
-                entries[index].emojiId = emojiIntensities.first?.id ?? UUID()
-            }
-        }
-        save()
     }
 }

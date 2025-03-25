@@ -1,8 +1,9 @@
 import SwiftUI
+import SwiftData
 
 struct EmojiManagementView: View {
     @Environment(\.dismiss) var dismiss
-    @ObservedObject var dataManager: TearDataManager
+    @Bindable var dataManager: TearDataManager
     @State private var newEmoji = ""
     @State private var selectedColor = Color.blue
     @State private var showingAlert = false
@@ -180,8 +181,8 @@ private struct EmojiCell: View {
     }
 }
 
-#Preview {
-    NavigationView {
-        EmojiManagementView(dataManager: TearDataManager())
-    }
-}
+//#Preview {
+//    NavigationView {
+//        EmojiManagementView(dataManager: TearDataManager(modelContext: ModelContext(ModelContainer())))
+//    }
+//}
