@@ -1,5 +1,4 @@
 import SwiftUI
-
 struct TearFormView: View {
     @Environment(\.dismiss) var dismiss
     @ObservedObject var dataManager: TearDataManager
@@ -11,6 +10,11 @@ struct TearFormView: View {
     
     let title: String
     let onSave: (TearEntry) -> Void
+    
+    var isFormValid: Bool {
+        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
+        return !trimmedNote.isEmpty && selectedTagId != nil
+    }
     
     var body: some View {
         NavigationView {
@@ -32,16 +36,18 @@ struct TearFormView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Сохранить") {
+                        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
                         let entry = TearEntry(
                             date: selectedDate,
                             emojiId: selectedEmojiId,
                             tagId: selectedTagId,
-                            note: note
+                            note: trimmedNote
                         )
                         onSave(entry)
                         dismiss()
                     }
                     .fontWeight(.bold)
+                    .disabled(!isFormValid)
                 }
             }
         }

@@ -8,7 +8,7 @@ struct AddTearView: View {
             dataManager: dataManager,
             selectedDate: Date(),
             selectedEmojiId: dataManager.emojiIntensities[0].id,
-            selectedTagId: UUID(),
+            selectedTagId: nil,
             note: "",
             title: "Новая запись",
             onSave: { entry in
