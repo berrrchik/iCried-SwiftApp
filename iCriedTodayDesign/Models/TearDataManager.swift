@@ -17,12 +17,10 @@ class TearDataManager {
     
     private func loadInitialData() {
         do {
-            // Загрузка эмодзи
             let emojiDescriptor = FetchDescriptor<EmojiIntensity>()
             emojiIntensities = try modelContext.fetch(emojiDescriptor)
             
             if emojiIntensities.isEmpty {
-                // Добавляем начальные эмодзи
                 let defaultEmojis = [
                     EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
                     EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
@@ -35,12 +33,10 @@ class TearDataManager {
                 }
             }
             
-            // Загрузка тегов
             let tagDescriptor = FetchDescriptor<TagItem>()
             tags = try modelContext.fetch(tagDescriptor)
             
             if tags.isEmpty {
-                // Добавляем начальные теги
                 let defaultTags = [
                     "#Здоровье", "#Одиночество", "#Работа",
                     "#Семья", "#Фильмы"
@@ -52,7 +48,6 @@ class TearDataManager {
                 }
             }
             
-            // Загрузка записей
             let entryDescriptor = FetchDescriptor<TearEntry>()
             entries = try modelContext.fetch(entryDescriptor)
             
@@ -100,7 +95,6 @@ class TearDataManager {
             modelContext.delete(tag)
             tags.removeAll { $0.id == tagId }
             
-            // Обновляем записи, где использовался этот тег
             entries.forEach { entry in
                 if entry.tagId == tagId {
                     entry.tagId = nil
@@ -116,11 +110,7 @@ class TearDataManager {
         let newOrder = tags.map { $0.id }
         
         if oldOrder != newOrder {
-//            objectWillChange.send()
             save()
-            print("Теги перемещены: \(oldOrder) -> \(newOrder)")
-        } else {
-            print("Порядок тегов не изменился")
         }
     }
     
@@ -145,7 +135,6 @@ class TearDataManager {
         
         let originalEmoji = emojiIntensities[index]
         
-        // Обновляем изменяемые свойства напрямую
         originalEmoji.emoji = updatedEmoji.emoji
         originalEmoji.colorHex = updatedEmoji.colorHex
         originalEmoji.opacity = updatedEmoji.opacity
@@ -159,11 +148,7 @@ class TearDataManager {
         let newOrder = emojiIntensities.map { $0.id }
         
         if oldOrder != newOrder {
-//            objectWillChange.send()
             save()
-            print("Эмодзи перемещены: \(oldOrder) -> \(newOrder)")
-        } else {
-            print("Порядок эмодзи не изменился")
         }
     }
 
@@ -206,7 +191,6 @@ class TearDataManager {
         
         filteredEntries.sort(by: { $0.date > $1.date })
         
-        print("Filtered entries for year \(year): \(filteredEntries.count) entries")
         return filteredEntries
     }
     

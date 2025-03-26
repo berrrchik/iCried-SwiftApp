@@ -181,8 +181,15 @@ private struct EmojiCell: View {
     }
 }
 
-//#Preview {
-//    NavigationView {
-//        EmojiManagementView(dataManager: TearDataManager(modelContext: ModelContext(ModelContainer())))
-//    }
-//}
+#Preview {
+    do {
+        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
+        let modelContext = ModelContext(container)
+        let dataManager = TearDataManager(modelContext: modelContext)
+        return NavigationStack {
+            EmojiManagementView(dataManager: dataManager)
+        }
+    } catch {
+        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
+    }
+}
