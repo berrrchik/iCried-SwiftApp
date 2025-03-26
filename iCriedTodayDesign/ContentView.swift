@@ -8,6 +8,7 @@ struct ContentView: View {
     
     init(modelContext: ModelContext) {
         _dataManager = State(initialValue: TearDataManager(modelContext: modelContext))
+        UITabBar.appearance().backgroundColor = UIColor.white
     }
     
     var body: some View {
@@ -35,9 +36,6 @@ struct ContentView: View {
                 Label("Настройки", systemImage: "slider.horizontal.3")
             }
             .tag(2)
-        }
-        .onAppear {
-//            dataManager.load()
         }
     }
 }
@@ -85,7 +83,6 @@ struct TearLogView: View {
                     .foregroundColor(.white)
                     .frame(width: 44, height: 44)
                     .background(Circle().fill(Color.blue))
-                    .shadow(radius: 10)
             }
         }
         .padding()
