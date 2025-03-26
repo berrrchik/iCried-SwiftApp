@@ -170,11 +170,12 @@ struct TearCard: View {
     }
 }
 
-//#Preview {
-//    do {
-//        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
-//        return ContentView(modelContext: ModelContext(container))
-//    } catch {
-//        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
-//    }
-//}
+#Preview {
+    do {
+        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
+        let modelContext = ModelContext(container)
+        return ContentView(modelContext: modelContext)
+    } catch {
+        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
+    }
+}
