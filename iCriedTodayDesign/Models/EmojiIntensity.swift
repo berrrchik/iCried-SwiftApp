@@ -7,16 +7,18 @@ final class EmojiIntensity {
     var emoji: String
     var colorHex: String
     var opacity: Double
-    
+    var order: Int 
+
     var color: Color {
         (Color(hex: colorHex) ?? .blue).opacity(opacity)
     }
-    
-    init(emoji: String, color: Color, opacity: Double = 1.0) {
+
+    init(emoji: String, color: Color, opacity: Double = 1.0, order: Int = 0) {
         self.id = UUID()
         self.emoji = emoji
         self.colorHex = color.toHex() ?? "#0000FF"
         self.opacity = opacity
+        self.order = order
     }
 }
 

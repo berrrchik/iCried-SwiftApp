@@ -17,14 +17,14 @@ class TearDataManager {
     
     private func loadInitialData() {
         do {
-            let emojiDescriptor = FetchDescriptor<EmojiIntensity>()
+            let emojiDescriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\EmojiIntensity.order, order: .forward)])
             emojiIntensities = try modelContext.fetch(emojiDescriptor)
             
             if emojiIntensities.isEmpty {
                 let defaultEmojis = [
-                    EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4),
-                    EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7),
-                    EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0)
+                    EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 0),
+                    EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 1),
+                    EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 2)
                 ]
                 
                 for emoji in defaultEmojis {
@@ -33,14 +33,14 @@ class TearDataManager {
                 }
             }
             
-            let tagDescriptor = FetchDescriptor<TagItem>()
+            let tagDescriptor = FetchDescriptor<TagItem>(sortBy: [.init(\TagItem.order, order: .forward)])
             tags = try modelContext.fetch(tagDescriptor)
             
             if tags.isEmpty {
                 let defaultTags = [
                     "#Здоровье", "#Одиночество", "#Работа",
                     "#Семья", "#Фильмы"
-                ].map { TagItem(name: $0) }
+                ].enumerated().map { TagItem(name: $0.element, order: $0.offset) }
                 
                 for tag in defaultTags {
                     modelContext.insert(tag)
@@ -55,6 +55,7 @@ class TearDataManager {
             print("Ошибка при загрузке данных: \(error)")
         }
     }
+    
     
     var availableYears: [Int] {
         Set(entries.map { Calendar.current.component(.year, from: $0.date) }).sorted()
@@ -108,8 +109,11 @@ class TearDataManager {
         let oldOrder = tags.map { $0.id }
         tags.move(fromOffsets: source, toOffset: destination)
         let newOrder = tags.map { $0.id }
-        
+
         if oldOrder != newOrder {
+            for (index, tag) in tags.enumerated() {
+                tag.order = index
+            }
             save()
         }
     }
@@ -146,8 +150,11 @@ class TearDataManager {
         let oldOrder = emojiIntensities.map { $0.id }
         emojiIntensities.move(fromOffsets: source, toOffset: destination)
         let newOrder = emojiIntensities.map { $0.id }
-        
+
         if oldOrder != newOrder {
+            for (index, emoji) in emojiIntensities.enumerated() {
+                emoji.order = index
+            }
             save()
         }
     }
@@ -175,23 +182,17 @@ class TearDataManager {
         return tags.first(where: { $0.id == entry.tagId })
     }
     
-    func entriesForYear(_ year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [TearEntry] {
+    func entriesForYear(_ year: Int, emojiId: UUID? = nil, tagIds: [UUID]? = nil) -> [TearEntry] {
         let calendar = Calendar.current
-        var filteredEntries = entries.filter { entry in
-            calendar.component(.year, from: entry.date) == year
+        return entries.filter { entry in
+            let entryYear = calendar.component(.year, from: entry.date)
+            
+            let yearMatches = entryYear == year
+            let emojiMatches = emojiId == nil || entry.emojiId == emojiId
+            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
+            
+            return yearMatches && emojiMatches && tagMatches
         }
-        
-        if let emojiId = emojiId {
-            filteredEntries = filteredEntries.filter { $0.emojiId == emojiId }
-        }
-        
-        if let tagId = tagId {
-            filteredEntries = filteredEntries.filter { $0.tagId == tagId }
-        }
-        
-        filteredEntries.sort(by: { $0.date > $1.date })
-        
-        return filteredEntries
     }
     
     func totalEntriesForYear(_ year: Int) -> Int {
@@ -205,10 +206,19 @@ class TearDataManager {
         return emojiIntensities[0]
     }
     
-    func emojiStatistics(for year: Int, emojiId: UUID? = nil) -> [(emoji: String, count: Int)] {
-        let yearEntries = entriesForYear(year, emojiId: emojiId)
-        var emojiCounts: [UUID: Int] = [:]
+    func emojiStatistics(for year: Int, tagIds: [UUID]? = nil) -> [(emoji: String, count: Int)] {
+        let calendar = Calendar.current
+        let yearEntries = entries.filter { entry in
+            let entryYear = calendar.component(.year, from: entry.date)
+            
+            // Проверяем соответствие году и тегам
+            let yearMatches = entryYear == year
+            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
+            
+            return yearMatches && tagMatches
+        }
         
+        var emojiCounts: [UUID: Int] = [:]
         yearEntries.forEach { entry in
             emojiCounts[entry.emojiId, default: 0] += 1
         }
@@ -216,11 +226,10 @@ class TearDataManager {
         return emojiIntensities.map { emoji in
             (emoji: emoji.emoji, count: emojiCounts[emoji.id] ?? 0)
         }
-        
     }
     
-    func tagStatistics(for year: Int, tagId: UUID? = nil) -> [(tag: String, count: Int)] {
-        let yearEntries = entriesForYear(year, tagId: tagId)
+    func tagStatistics(for year: Int, tagIds: [UUID]? = nil) -> [(tag: String, count: Int)] {
+        let yearEntries = entriesForYear(year, tagIds: tagIds)
         var tagCounts: [UUID: Int] = [:]
         
         yearEntries.compactMap { $0.tagId }.forEach { tagId in
@@ -232,9 +241,18 @@ class TearDataManager {
         }
     }
     
-    func monthlyDataByIntensity(for year: Int, emojiId: UUID? = nil, tagId: UUID? = nil) -> [(date: Date, intensityCounts: [Int])] {
+    func monthlyDataByIntensity(for year: Int, emojiId: UUID? = nil, tagIds: [UUID]? = nil) -> [(date: Date, intensityCounts: [Int])] {
         let calendar = Calendar.current
-        let yearEntries = entriesForYear(year, emojiId: emojiId, tagId: tagId)
+        
+        let yearEntries = entries.filter { entry in
+            let entryYear = calendar.component(.year, from: entry.date)
+            
+            let yearMatches = entryYear == year
+            let emojiMatches = emojiId == nil || entry.emojiId == emojiId
+            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
+            
+            return yearMatches && emojiMatches && tagMatches
+        }
         
         return (1...12).map { month in
             let components = DateComponents(year: year, month: month, day: 1)
