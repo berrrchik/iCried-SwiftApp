@@ -3,9 +3,9 @@ import SwiftData
 
 @Model
 final class TagItem {
-    var id: UUID
-    var name: String
-    var order: Int
+    var id: UUID = UUID()
+    var name: String = ""
+    var order: Int = 0
 
     init(name: String, order: Int = 0) {
         self.id = UUID()

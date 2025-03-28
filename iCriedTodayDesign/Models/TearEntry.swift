@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class TearEntry {
-    var id: UUID
-    var date: Date
-    var emojiId: UUID
+    var id: UUID = UUID()
+    var date: Date = Date()
+    var emojiId: UUID = UUID()
     var tagId: UUID?
-    var note: String
+    var note: String = ""
     
     init(date: Date, emojiId: UUID, tagId: UUID?, note: String) {
         self.id = UUID()

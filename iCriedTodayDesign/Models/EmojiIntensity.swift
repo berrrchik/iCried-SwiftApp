@@ -3,11 +3,11 @@ import SwiftData
 
 @Model
 final class EmojiIntensity {
-    var id: UUID
-    var emoji: String
-    var colorHex: String
-    var opacity: Double
-    var order: Int 
+    var id: UUID = UUID()
+    var emoji: String = "🥲"
+    var colorHex: String = "#0000FF"
+    var opacity: Double = 1.0
+    var order: Int = 0
 
     var color: Color {
         (Color(hex: colorHex) ?? .blue).opacity(opacity)
