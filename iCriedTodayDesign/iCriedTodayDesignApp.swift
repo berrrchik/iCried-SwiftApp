@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import CloudKit
 
 @main
 struct iCriedTodayDesignApp: App {
@@ -7,12 +8,21 @@ struct iCriedTodayDesignApp: App {
     
     init() {
         do {
-            container = try ModelContainer(
-                for: TearEntry.self, EmojiIntensity.self, TagItem.self,
-                configurations: ModelConfiguration(isStoredInMemoryOnly: false)
+            let schema = Schema([
+                TagItem.self,
+                EmojiIntensity.self,
+                TearEntry.self
+            ])
+            
+            let modelConfiguration = ModelConfiguration(
+                schema: schema,
+                isStoredInMemoryOnly: false,
+                cloudKitDatabase: .private("iCloud.com.berchik.iCriedTodayDesign")
             )
+            
+            container = try ModelContainer(for: schema, configurations: [modelConfiguration])
         } catch {
-            fatalError("Could not initialize ModelContainer: \(error)")
+            fatalError("Не удалось инициализировать ModelContainer: \(error)")
         }
     }
     
