@@ -8,8 +8,8 @@ struct AddTearView: View {
         TearFormView(
             dataManager: dataManager,
             selectedDate: Date(),
-            selectedEmojiId: dataManager.emojiIntensities[0].id,
-            selectedTagId: nil,
+            selectedEmoji: dataManager.emojiIntensities[0],
+            selectedTag: nil,
             note: "",
             title: "Новая запись",
             onSave: { entry in

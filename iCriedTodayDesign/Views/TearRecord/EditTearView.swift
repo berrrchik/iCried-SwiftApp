@@ -9,8 +9,8 @@ struct EditTearView: View {
         TearFormView(
             dataManager: dataManager,
             selectedDate: entry.date,
-            selectedEmojiId: entry.emojiId,
-            selectedTagId: entry.tagId,
+            selectedEmoji: entry.emojiId,
+            selectedTag: entry.tagId,
             note: entry.note,
             title: "Редактировать",
             onSave: { updatedEntry in
