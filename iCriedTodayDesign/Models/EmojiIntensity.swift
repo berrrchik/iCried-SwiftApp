@@ -8,11 +8,12 @@ final class EmojiIntensity {
     var colorHex: String = "#0000FF"
     var opacity: Double = 1.0
     var order: Int = 0
-
+    @Relationship(deleteRule: .nullify, inverse: \TearEntry.emojiId) var entries: [TearEntry]? = []
+    
     var color: Color {
         (Color(hex: colorHex) ?? .blue).opacity(opacity)
     }
-
+    
     init(emoji: String, color: Color, opacity: Double = 1.0, order: Int = 0) {
         self.id = UUID()
         self.emoji = emoji
@@ -21,7 +22,6 @@ final class EmojiIntensity {
         self.order = order
     }
 }
-
 // Расширения для работы с цветами
 extension Color {
     init?(hex: String) {
