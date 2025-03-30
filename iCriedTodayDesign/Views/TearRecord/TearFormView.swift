@@ -6,8 +6,8 @@ struct TearFormView: View {
     @Bindable var dataManager: TearDataManager
 
     @State var selectedDate: Date
-    @State var selectedEmojiId: UUID
-    @State var selectedTagId: UUID?
+    @State var selectedEmoji: EmojiIntensity?
+    @State var selectedTag: TagItem?          
     @State var note: String
     
     let title: String
@@ -15,7 +15,23 @@ struct TearFormView: View {
     
     var isFormValid: Bool {
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedNote.isEmpty && selectedTagId != nil
+        return !trimmedNote.isEmpty && selectedTag != nil
+    }
+    
+    init(dataManager: TearDataManager,
+         selectedDate: Date = Date(),
+         selectedEmoji: EmojiIntensity? = nil,
+         selectedTag: TagItem? = nil,
+         note: String = "",
+         title: String,
+         onSave: @escaping (TearEntry) -> Void) {
+        self.dataManager = dataManager
+        self._selectedDate = State(initialValue: selectedDate)
+        self._selectedEmoji = State(initialValue: selectedEmoji ?? dataManager.emojiIntensities.first!)
+        self._selectedTag = State(initialValue: selectedTag)
+        self._note = State(initialValue: note)
+        self.title = title
+        self.onSave = onSave
     }
     
     var body: some View {
@@ -41,8 +57,8 @@ struct TearFormView: View {
                         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
                         let entry = TearEntry(
                             date: selectedDate,
-                            emojiId: selectedEmojiId,
-                            tagId: selectedTagId,
+                            emojiId: selectedEmoji,
+                            tagId: selectedTag,
                             note: trimmedNote
                         )
                         onSave(entry)
@@ -80,9 +96,9 @@ struct TearFormView: View {
                 ForEach(dataManager.tags) { tag in
                     TagButton(
                         tagName: tag.name,
-                        isSelected: selectedTagId == tag.id,
+                        isSelected: selectedTag?.id == tag.id,
                         action: {
-                            selectedTagId = tag.id
+                            selectedTag = tag
                         }
                     )
                 }
@@ -102,9 +118,9 @@ struct TearFormView: View {
                             emoji: emojiIntensity.emoji,
                             count: nil,
                             color: emojiIntensity.color,
-                            isSelected: selectedEmojiId == emojiIntensity.id,
+                            isSelected: selectedEmoji?.id == emojiIntensity.id,
                             action: {
-                                selectedEmojiId = emojiIntensity.id
+                                selectedEmoji = emojiIntensity
                             },
                             isCountVisible: false,
                             fontSize: 40
