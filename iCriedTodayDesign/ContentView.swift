@@ -37,6 +37,15 @@ struct ContentView: View {
             }
             .tag(2)
         }
+        .onChange(of: selectedTab) { _ in
+            dataManager.refreshData()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            dataManager.refreshData()
+        }
+        .onAppear {
+            dataManager.removeDuplicates()
+        }
     }
 }
 
