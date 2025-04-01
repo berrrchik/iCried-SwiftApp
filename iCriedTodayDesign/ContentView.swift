@@ -65,12 +65,23 @@ struct TearLogView: View {
     var body: some View {
         VStack(spacing: -5) {
             headerView
-            entriesList
-                .refreshable {
-                    isRefreshing = true
-                    await dataManager.syncWithCloudKit()
-                    isRefreshing = false
-                }
+            
+            if entries.isEmpty {
+                EmptyStateView(
+                    title: "Начните свой путь",
+                    subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
+                    icon: "drop.fill",
+                    buttonTitle: "Добавить запись",
+                    action: { showingAddTear = true }
+                )
+            } else {
+                entriesList
+                    .refreshable {
+                        isRefreshing = true
+                        await dataManager.syncWithCloudKit()
+                        isRefreshing = false
+                    }
+            }
         }
         .sheet(isPresented: $showingAddTear) {
             AddTearView(dataManager: dataManager)

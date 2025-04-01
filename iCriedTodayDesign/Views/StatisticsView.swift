@@ -13,38 +13,54 @@ struct StatisticsView: View {
     @State private var selectedTags: Set<TagItem> = []
     @State private var selectedEmoji: EmojiIntensity? = nil
     @State private var selectedMonth: Date? = nil
+    @State private var showingAddTear = false
     
     var body: some View {
-        List {
-            Section {
-                yearHeader
-                monthlyChartInteractive
-                emojiStats
-                tagsList
-            }
-            
-            ForEach(groupedEntriesForYear, id: \.month) { section in
-                Section(header: Text(section.month)
-                    .font(.headline)
-                    .foregroundColor(.gray)) {
-                        ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
-                            TearCard(entry: entry, dataManager: dataManager)
-                                .swipeActions(allowsFullSwipe: false) {
-                                    Button() {
-                                        entryToDelete = entry
-                                        showingDeleteAlert = true
-                                    } label: {
-                                        Label("Удалить", systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                }
-                        }
+        Group {
+            if entries.isEmpty {
+                EmptyStateView(
+                    title: "Нет данных для анализа",
+                    subtitle: "Добавьте свой первый момент грусти, чтобы начать отслеживать свои эмоции",
+                    icon: "chart.bar.fill",
+                    buttonTitle: "Добавить запись",
+                    action: { showingAddTear = true }
+                )
+            } else {
+                List {
+                    Section {
+                        yearHeader
+                        monthlyChartInteractive
+                        emojiStats
+                        tagsList
                     }
+                    
+                    ForEach(groupedEntriesForYear, id: \.month) { section in
+                        Section(header: Text(section.month)
+                            .font(.headline)
+                            .foregroundColor(.gray)) {
+                                ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
+                                    TearCard(entry: entry, dataManager: dataManager)
+                                        .swipeActions(allowsFullSwipe: false) {
+                                            Button() {
+                                                entryToDelete = entry
+                                                showingDeleteAlert = true
+                                            } label: {
+                                                Label("Удалить", systemImage: "trash")
+                                            }
+                                            .tint(.red)
+                                        }
+                                }
+                            }
+                    }
+                }
+                .listStyle(InsetGroupedListStyle())
+                .background(Color(.systemGroupedBackground))
             }
         }
-        .listStyle(InsetGroupedListStyle())
-        .background(Color(.systemGroupedBackground))
         .navigationTitle("Статистика")
+        .sheet(isPresented: $showingAddTear) {
+            AddTearView(dataManager: dataManager)
+        }
         .alert("Удалить запись?", isPresented: $showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
