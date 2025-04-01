@@ -228,8 +228,8 @@
 			children = (
 				572787BD2D80B56B00639424 /* TagItem.swift */,
 				573968352D749B1300679200 /* EmojiIntensity.swift */,
-				57DE81922D66651A0097709F /* TearDataManager.swift */,
 				57DE81932D66651A0097709F /* TearEntry.swift */,
+				57DE81922D66651A0097709F /* TearDataManager.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";

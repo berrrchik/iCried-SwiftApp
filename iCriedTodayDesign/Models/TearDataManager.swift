@@ -20,13 +20,9 @@ class TearDataManager {
     }
     
     private func setupCloudKitSubscription() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-            self.removeDuplicates()
-        }
         let subscription = NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)
         cloudSubscription = subscription.sink { [weak self] _ in
             guard let self = self else { return }
-            print("Получено уведомление о изменениях в CloudKit")
         }
     }
     
@@ -58,39 +54,19 @@ class TearDataManager {
     
     func syncWithCloudKit() async {
         print("Начинаем синхронизацию с CloudKit...")
-        
-        // Сохраняем текущие ID перед обновлением
         let existingIds = Set(entries.map { $0.id })
-        
-        // Загружаем данные из CloudKit
         await withCheckedContinuation { continuation in
             DispatchQueue.main.async {
                 self.loadInitialData()
                 self.removeDuplicates()
                 print("Синхронизация с CloudKit завершена")
                 
-                // Сохраняем время последней синхронизации
                 UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastDataRefreshTime")
                 
                 continuation.resume()
             }
         }
     }
-    
-//    func refreshData() {
-//        let lastRefreshTime = UserDefaults.standard.double(forKey: "lastDataRefreshTime")
-//        let currentTime = Date().timeIntervalSince1970
-//        
-//        if currentTime - lastRefreshTime > 30 {
-//            let existingIds = Set(entries.map { $0.id })
-//            loadInitialData()
-//            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-//                self.removeDuplicates()
-//            }
-//            
-//            UserDefaults.standard.set(currentTime, forKey: "lastDataRefreshTime")
-//        }
-//    }
     
     func removeDuplicates() {
         var emojiGroups: [String: [EmojiIntensity]] = [:]
@@ -195,75 +171,61 @@ class TearDataManager {
     
     private func loadInitialData() {
         do {
-            let emojiDescriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\EmojiIntensity.order, order: .forward)])
+            let emojiDescriptor = FetchDescriptor<EmojiIntensity>(
+                sortBy: [.init(\EmojiIntensity.order, order: .forward)]
+            )
             emojiIntensities = try modelContext.fetch(emojiDescriptor)
             
-            let defaultEmojis = ["🥲", "😢", "😭"]
-            let hasDefaultEmojis = defaultEmojis.allSatisfy { emoji in
-                emojiIntensities.contains { $0.emoji == emoji }
-            }
-            
-            if emojiIntensities.isEmpty || !hasDefaultEmojis {
-                for (index, emoji) in defaultEmojis.enumerated() {
-                    if !emojiIntensities.contains(where: { $0.emoji == emoji }) {
-                        let newEmoji = EmojiIntensity(emoji: emoji,
-                                                      color: .blue,
-                                                      opacity: index == 0 ? 0.4 : (index == 1 ? 0.7 : 1.0),
-                                                      order: emojiIntensities.count)
-                        modelContext.insert(newEmoji)
-                        emojiIntensities.append(newEmoji)
-                    }
+            if emojiIntensities.isEmpty {
+                let defaultEmojis = [
+                    ("🥲", 0.4),
+                    ("😢", 0.7),
+                    ("😭", 1.0)
+                ]
+                
+                for (index, (emoji, opacity)) in defaultEmojis.enumerated() {
+                    let newEmoji = EmojiIntensity(
+                        emoji: emoji,
+                        color: .blue,
+                        opacity: opacity,
+                        order: index
+                    )
+                    modelContext.insert(newEmoji)
+                    emojiIntensities.append(newEmoji)
                 }
             }
             
-            let tagDescriptor = FetchDescriptor<TagItem>(sortBy: [.init(\TagItem.order, order: .forward)])
+            let tagDescriptor = FetchDescriptor<TagItem>(
+                sortBy: [.init(\TagItem.order, order: .forward)]
+            )
             tags = try modelContext.fetch(tagDescriptor)
             
-            let defaultTagNames = ["#Здоровье", "#Одиночество", "#Работа", "#Семья", "#Фильмы"]
-            let hasDefaultTags = defaultTagNames.allSatisfy { tagName in
-                tags.contains { $0.name.lowercased() == tagName.lowercased() }
-            }
-            
-            if tags.isEmpty || !hasDefaultTags {
-                for tagName in defaultTagNames {
-                    if !tags.contains(where: { $0.name.lowercased() == tagName.lowercased() }) {
-                        let newTag = TagItem(name: tagName)
-                        newTag.order = tags.count
-                        modelContext.insert(newTag)
-                        tags.append(newTag)
-                    }
-                }
-            }
-            
-            // Загрузка записей с предотвращением дублирования
-            let entryDescriptor = FetchDescriptor<TearEntry>()
-            let fetchedEntries = try modelContext.fetch(entryDescriptor)
-            
-            // Создаём словарь существующих записей по ID
-            var existingEntriesById = [UUID: TearEntry]()
-            for entry in entries {
-                existingEntriesById[entry.id] = entry
-            }
-            
-            // Создаём словарь по содержимому для проверки дубликатов
-            var existingEntriesByContent = [String: TearEntry]()
-            for entry in entries {
-                let signature = "\(entry.date.timeIntervalSince1970)-\(entry.emojiId?.id.uuidString ?? "")-\(entry.tagId?.id.uuidString ?? "")-\(entry.note)"
-                existingEntriesByContent[signature] = entry
-            }
-            
-            // Добавляем только новые записи
-            for fetchedEntry in fetchedEntries {
-                let signature = "\(fetchedEntry.date.timeIntervalSince1970)-\(fetchedEntry.emojiId?.id.uuidString ?? "")-\(fetchedEntry.tagId?.id.uuidString ?? "")-\(fetchedEntry.note)"
+            if tags.isEmpty {
+                let defaultTags = [
+                    "#Здоровье",
+                    "#Одиночество",
+                    "#Работа",
+                    "#Семья",
+                    "#Фильмы"
+                ]
                 
-                if existingEntriesById[fetchedEntry.id] == nil && existingEntriesByContent[signature] == nil {
-                    entries.append(fetchedEntry)
+                for (index, tagName) in defaultTags.enumerated() {
+                    let newTag = TagItem(name: tagName)
+                    newTag.order = index
+                    modelContext.insert(newTag)
+                    tags.append(newTag)
                 }
             }
             
-            save()
+            let entryDescriptor = FetchDescriptor<TearEntry>(
+                sortBy: [.init(\TearEntry.date, order: .reverse)]
+            )
+            entries = try modelContext.fetch(entryDescriptor)
             
-            checkCloudKitStatus()
+            if emojiIntensities.count > 0 || tags.count > 0 {
+                try modelContext.save()
+            }
+            
         } catch {
             print("Ошибка при загрузке данных: \(error)")
         }
@@ -505,14 +467,12 @@ class TearDataManager {
     func save() {
         do {
             try modelContext.save()
-            print("Данные успешно сохранены: \(Date())")
+            print("Данные успешно сохранены")
         } catch {
             print("Ошибка при сохранении: \(error)")
             if let nsError = error as NSError? {
-                print("Код ошибки: \(nsError.code), описание: \(nsError.localizedDescription)")
-                if let reason = nsError.userInfo["NSLocalizedFailureReason"] as? String {
-                    print("Причина: \(reason)")
-                }
+                print("Детали ошибки: \(nsError.localizedDescription)")
+                print("Код ошибки: \(nsError.code)")
             }
         }
     }

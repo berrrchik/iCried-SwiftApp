@@ -6,6 +6,15 @@ struct ContentView: View {
     @State private var dataManager: TearDataManager
     @State private var selectedTab = 0
     
+    @Query(sort: [SortDescriptor(\TearEntry.date, order: .reverse)])
+    private var entries: [TearEntry]
+    
+    @Query(sort: [SortDescriptor(\TagItem.order)])
+    private var tags: [TagItem]
+    
+    @Query(sort: [SortDescriptor(\EmojiIntensity.order)])
+    private var emojiIntensities: [EmojiIntensity]
+    
     init(modelContext: ModelContext) {
         _dataManager = State(initialValue: TearDataManager(modelContext: modelContext))
         UITabBar.appearance().backgroundColor = UIColor.white
@@ -14,7 +23,7 @@ struct ContentView: View {
     var body: some View {
         TabView(selection: $selectedTab) {
             NavigationStack {
-                TearLogView(dataManager: dataManager)
+                TearLogView(entries: entries, tags: tags, emojiIntensities: emojiIntensities, dataManager: dataManager)
             }
             .tabItem {
                 Label("Дневник", systemImage: "drop.fill")
@@ -22,7 +31,7 @@ struct ContentView: View {
             .tag(0)
             
             NavigationStack {
-                StatisticsView(dataManager: dataManager)
+                StatisticsView(entries: entries, tags: tags, emojiIntensities: emojiIntensities, dataManager: dataManager)
             }
             .tabItem {
                 Label("Анализ", systemImage: "waveform.path.ecg")
@@ -44,16 +53,14 @@ struct ContentView: View {
 }
 
 struct TearLogView: View {
+    let entries: [TearEntry]
+    let tags: [TagItem]
+    let emojiIntensities: [EmojiIntensity]
     @Bindable var dataManager: TearDataManager
     @State private var showingAddTear = false
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
-    
     @State private var isRefreshing = false
-    
-    init(dataManager: TearDataManager) {
-        self.dataManager = dataManager
-    }
     
     var body: some View {
         VStack(spacing: -5) {

@@ -3,6 +3,9 @@ import SwiftData
 import Charts
 
 struct StatisticsView: View {
+    let entries: [TearEntry]
+    let tags: [TagItem]
+    let emojiIntensities: [EmojiIntensity]
     @Bindable var dataManager: TearDataManager
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var showingDeleteAlert = false
@@ -27,12 +30,13 @@ struct StatisticsView: View {
                         ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
                             TearCard(entry: entry, dataManager: dataManager)
                                 .swipeActions(allowsFullSwipe: false) {
-                                    Button(role: .destructive) {
+                                    Button() {
                                         entryToDelete = entry
                                         showingDeleteAlert = true
                                     } label: {
                                         Label("Удалить", systemImage: "trash")
                                     }
+                                    .tint(.red)
                                 }
                         }
                     }
@@ -279,18 +283,5 @@ private struct YearButton: View {
         }
         .buttonStyle(PlainButtonStyle())
         .contentShape(Rectangle())
-    }
-}
-
-#Preview {
-    do {
-        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
-        let modelContext = ModelContext(container)
-        let dataManager = TearDataManager(modelContext: modelContext)
-        return NavigationStack {
-            StatisticsView(dataManager: dataManager)
-        }
-    } catch {
-        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
     }
 }
