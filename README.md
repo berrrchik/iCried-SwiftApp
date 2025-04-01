@@ -65,12 +65,14 @@ iCried - это приложение для iOS, которое помогает
 - Обработка конфликтов и дублирования данных
 
 ## Скриншоты
-
-1. Экран дневника с записями
-2. Экран добавления новой записи
-3. Экран статистики и анализа
-4. Экран управления тегами
-5. Экран управления эмодзи
+<p align="center">
+   <img src="https://github.com/user-attachments/assets/5e509f81-4aad-491d-a857-356ecbf08287" alt="Экран дневника с записями" width="32%" />
+   <img src="https://github.com/user-attachments/assets/96cce8a5-8728-4083-a21c-2c98d56f0ec2" alt="Экран добавления новой записи" width="32%" />
+  <img src="https://github.com/user-attachments/assets/df458e26-d132-4516-a481-97ffd41cc1de" alt="Экран редактирования записи" width="32%">
+   <img src="https://github.com/user-attachments/assets/9dbd91b5-6049-42c9-8be7-840e2f23fd4a" alt="Экран статистики и анализа" width="32%" />
+   <img src="https://github.com/user-attachments/assets/d94de05b-16d8-415e-a383-525e43cc9598" alt="Экран управления тегами" width="32%" />
+   <img src="https://github.com/user-attachments/assets/7dd6feb6-499b-4de0-8ac9-d9f866140481" alt="Экран управления эмодзи" width="32%" />
+</p>
 
 ## Требования
 
