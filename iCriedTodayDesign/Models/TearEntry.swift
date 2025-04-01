@@ -10,7 +10,9 @@ final class TearEntry {
     var note: String = ""
     
     init(date: Date, emojiId: EmojiIntensity?, tagId: TagItem?, note: String) {
-        self.id = UUID()
+        let idString = "\(date.timeIntervalSince1970)-\(emojiId?.id.uuidString ?? "")-\(tagId?.id.uuidString ?? "")-\(note)"
+        let idData = idString.data(using: .utf8)!
+        self.id = UUID(uuidString: idData.base64EncodedString()) ?? UUID()
         self.date = date
         self.emojiId = emojiId
         self.tagId = tagId

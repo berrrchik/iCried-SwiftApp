@@ -37,12 +37,6 @@ struct ContentView: View {
             }
             .tag(2)
         }
-        .onChange(of: selectedTab) { _ in
-            dataManager.refreshData()
-        }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
-            dataManager.refreshData()
-        }
         .onAppear {
             dataManager.removeDuplicates()
         }
@@ -55,6 +49,8 @@ struct TearLogView: View {
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
     
+    @State private var isRefreshing = false
+    
     init(dataManager: TearDataManager) {
         self.dataManager = dataManager
     }
@@ -63,6 +59,11 @@ struct TearLogView: View {
         VStack(spacing: -5) {
             headerView
             entriesList
+                .refreshable {
+                    isRefreshing = true
+                    await dataManager.syncWithCloudKit()
+                    isRefreshing = false
+                }
         }
         .sheet(isPresented: $showingAddTear) {
             AddTearView(dataManager: dataManager)

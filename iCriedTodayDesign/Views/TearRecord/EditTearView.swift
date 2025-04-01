@@ -14,9 +14,7 @@ struct EditTearView: View {
             note: entry.note,
             title: "Редактировать",
             onSave: { updatedEntry in
-                var newEntry = updatedEntry
-                newEntry.id = entry.id 
-                dataManager.updateEntry(newEntry)
+                dataManager.updateEntry(entry, with: updatedEntry)
             }
         )
     }

@@ -1,10 +1,13 @@
 import Foundation
 import SwiftUI
 import SwiftData
+import CloudKit
+import Combine
 
 @Observable
 class TearDataManager {
     private var modelContext: ModelContext
+    private var cloudSubscription: AnyCancellable?
     
     var entries: [TearEntry] = []
     var tags: [TagItem] = []
@@ -13,6 +16,181 @@ class TearDataManager {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         loadInitialData()
+        setupCloudKitSubscription()
+    }
+    
+    private func setupCloudKitSubscription() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            self.removeDuplicates()
+        }
+        let subscription = NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)
+        cloudSubscription = subscription.sink { [weak self] _ in
+            guard let self = self else { return }
+            print("Получено уведомление о изменениях в CloudKit")
+        }
+    }
+    
+    func checkCloudKitStatus() {
+        CKContainer(identifier: "iCloud.com.berchik.iCriedTodayDesign").accountStatus { status, error in
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("Ошибка CloudKit: \(error.localizedDescription)")
+                    return
+                }
+                
+                switch status {
+                case .available:
+                    print("CloudKit доступен")
+                case .noAccount:
+                    print("Пользователь не вошел в iCloud")
+                case .restricted:
+                    print("CloudKit ограничен")
+                case .couldNotDetermine:
+                    print("Не удалось определить статус CloudKit")
+                case .temporarilyUnavailable:
+                    print("CloudKit временно недоступен")
+                @unknown default:
+                    print("Неизвестный статус CloudKit")
+                }
+            }
+        }
+    }
+    
+    func syncWithCloudKit() async {
+        print("Начинаем синхронизацию с CloudKit...")
+        
+        // Сохраняем текущие ID перед обновлением
+        let existingIds = Set(entries.map { $0.id })
+        
+        // Загружаем данные из CloudKit
+        await withCheckedContinuation { continuation in
+            DispatchQueue.main.async {
+                self.loadInitialData()
+                self.removeDuplicates()
+                print("Синхронизация с CloudKit завершена")
+                
+                // Сохраняем время последней синхронизации
+                UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastDataRefreshTime")
+                
+                continuation.resume()
+            }
+        }
+    }
+    
+//    func refreshData() {
+//        let lastRefreshTime = UserDefaults.standard.double(forKey: "lastDataRefreshTime")
+//        let currentTime = Date().timeIntervalSince1970
+//        
+//        if currentTime - lastRefreshTime > 30 {
+//            let existingIds = Set(entries.map { $0.id })
+//            loadInitialData()
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+//                self.removeDuplicates()
+//            }
+//            
+//            UserDefaults.standard.set(currentTime, forKey: "lastDataRefreshTime")
+//        }
+//    }
+    
+    func removeDuplicates() {
+        var emojiGroups: [String: [EmojiIntensity]] = [:]
+        for emoji in emojiIntensities {
+            emojiGroups[emoji.emoji, default: []].append(emoji)
+        }
+        
+        var duplicateEmojisCount = 0
+        for (_, group) in emojiGroups where group.count > 1 {
+            let sortedGroup = group.sorted { $0.order < $1.order }
+            let primaryEmoji = sortedGroup[0]
+            
+            for duplicateEmoji in sortedGroup.dropFirst() {
+                for entry in entries where entry.emojiId?.id == duplicateEmoji.id {
+                    entry.emojiId = primaryEmoji
+                }
+                
+                modelContext.delete(duplicateEmoji)
+                duplicateEmojisCount += 1
+            }
+        }
+        
+        if duplicateEmojisCount > 0 {
+            let updatedEmojiDescriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\EmojiIntensity.order, order: .forward)])
+            do {
+                emojiIntensities = try modelContext.fetch(updatedEmojiDescriptor)
+            } catch {
+                print("Ошибка при обновлении эмодзи: \(error)")
+            }
+        }
+        
+        var tagGroups: [String: [TagItem]] = [:]
+        for tag in tags {
+            tagGroups[tag.name.lowercased(), default: []].append(tag)
+        }
+        
+        var duplicateTagsCount = 0
+        for (_, group) in tagGroups where group.count > 1 {
+            let sortedGroup = group.sorted { $0.order < $1.order }
+            let primaryTag = sortedGroup[0]
+            
+            for duplicateTag in sortedGroup.dropFirst() {
+                for entry in entries where entry.tagId?.id == duplicateTag.id {
+                    entry.tagId = primaryTag
+                }
+                modelContext.delete(duplicateTag)
+                duplicateTagsCount += 1
+            }
+        }
+        
+        if duplicateTagsCount > 0 {
+            let updatedTagDescriptor = FetchDescriptor<TagItem>(sortBy: [.init(\TagItem.order, order: .forward)])
+            do {
+                tags = try modelContext.fetch(updatedTagDescriptor)
+            } catch {
+                print("Ошибка при обновлении тегов: \(error)")
+            }
+        }
+        
+        var uniqueEntryIds = Set<UUID>()
+        var duplicateEntries: [TearEntry] = []
+        
+        for entry in entries {
+            if uniqueEntryIds.contains(entry.id) {
+                duplicateEntries.append(entry)
+            } else {
+                uniqueEntryIds.insert(entry.id)
+            }
+        }
+        
+        var uniqueContentSignatures = Set<String>()
+        var contentDuplicates: [TearEntry] = []
+        
+        for entry in entries {
+            if !duplicateEntries.contains(where: { $0.id == entry.id }) {
+                let signature = "\(entry.date.timeIntervalSince1970)-\(entry.emojiId?.id.uuidString ?? "")-\(entry.tagId?.id.uuidString ?? "")-\(entry.note)"
+                if uniqueContentSignatures.contains(signature) {
+                    contentDuplicates.append(entry)
+                } else {
+                    uniqueContentSignatures.insert(signature)
+                }
+            }
+        }
+        
+        duplicateEntries.append(contentsOf: contentDuplicates)
+        
+        for duplicateEntry in duplicateEntries {
+            modelContext.delete(duplicateEntry)
+        }
+        
+        if !duplicateEntries.isEmpty {
+            entries.removeAll { entry in
+                duplicateEntries.contains { $0.id == entry.id }
+            }
+            print("Удалено \(duplicateEntries.count) дубликатов записей")
+        }
+        
+        save()
+        
+        print("Удаление дубликатов завершено. Удалено: \(duplicateEmojisCount) эмодзи, \(duplicateTagsCount) тегов")
     }
     
     private func loadInitialData() {
@@ -20,37 +198,72 @@ class TearDataManager {
             let emojiDescriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\EmojiIntensity.order, order: .forward)])
             emojiIntensities = try modelContext.fetch(emojiDescriptor)
             
-            if emojiIntensities.isEmpty {
-                let defaultEmojis = [
-                    EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 0),
-                    EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 1),
-                    EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 2)
-                ]
-                
-                for emoji in defaultEmojis {
-                    modelContext.insert(emoji)
-                    emojiIntensities.append(emoji)
+            let defaultEmojis = ["🥲", "😢", "😭"]
+            let hasDefaultEmojis = defaultEmojis.allSatisfy { emoji in
+                emojiIntensities.contains { $0.emoji == emoji }
+            }
+            
+            if emojiIntensities.isEmpty || !hasDefaultEmojis {
+                for (index, emoji) in defaultEmojis.enumerated() {
+                    if !emojiIntensities.contains(where: { $0.emoji == emoji }) {
+                        let newEmoji = EmojiIntensity(emoji: emoji,
+                                                      color: .blue,
+                                                      opacity: index == 0 ? 0.4 : (index == 1 ? 0.7 : 1.0),
+                                                      order: emojiIntensities.count)
+                        modelContext.insert(newEmoji)
+                        emojiIntensities.append(newEmoji)
+                    }
                 }
             }
             
             let tagDescriptor = FetchDescriptor<TagItem>(sortBy: [.init(\TagItem.order, order: .forward)])
             tags = try modelContext.fetch(tagDescriptor)
             
-            if tags.isEmpty {
-                let defaultTags = [
-                    "#Здоровье", "#Одиночество", "#Работа",
-                    "#Семья", "#Фильмы"
-                ].enumerated().map { TagItem(name: $0.element, order: $0.offset) }
-                
-                for tag in defaultTags {
-                    modelContext.insert(tag)
-                    tags.append(tag)
+            let defaultTagNames = ["#Здоровье", "#Одиночество", "#Работа", "#Семья", "#Фильмы"]
+            let hasDefaultTags = defaultTagNames.allSatisfy { tagName in
+                tags.contains { $0.name.lowercased() == tagName.lowercased() }
+            }
+            
+            if tags.isEmpty || !hasDefaultTags {
+                for tagName in defaultTagNames {
+                    if !tags.contains(where: { $0.name.lowercased() == tagName.lowercased() }) {
+                        let newTag = TagItem(name: tagName)
+                        newTag.order = tags.count
+                        modelContext.insert(newTag)
+                        tags.append(newTag)
+                    }
                 }
             }
             
+            // Загрузка записей с предотвращением дублирования
             let entryDescriptor = FetchDescriptor<TearEntry>()
-            entries = try modelContext.fetch(entryDescriptor)
+            let fetchedEntries = try modelContext.fetch(entryDescriptor)
             
+            // Создаём словарь существующих записей по ID
+            var existingEntriesById = [UUID: TearEntry]()
+            for entry in entries {
+                existingEntriesById[entry.id] = entry
+            }
+            
+            // Создаём словарь по содержимому для проверки дубликатов
+            var existingEntriesByContent = [String: TearEntry]()
+            for entry in entries {
+                let signature = "\(entry.date.timeIntervalSince1970)-\(entry.emojiId?.id.uuidString ?? "")-\(entry.tagId?.id.uuidString ?? "")-\(entry.note)"
+                existingEntriesByContent[signature] = entry
+            }
+            
+            // Добавляем только новые записи
+            for fetchedEntry in fetchedEntries {
+                let signature = "\(fetchedEntry.date.timeIntervalSince1970)-\(fetchedEntry.emojiId?.id.uuidString ?? "")-\(fetchedEntry.tagId?.id.uuidString ?? "")-\(fetchedEntry.note)"
+                
+                if existingEntriesById[fetchedEntry.id] == nil && existingEntriesByContent[signature] == nil {
+                    entries.append(fetchedEntry)
+                }
+            }
+            
+            save()
+            
+            checkCloudKitStatus()
         } catch {
             print("Ошибка при загрузке данных: \(error)")
         }
@@ -64,9 +277,22 @@ class TearDataManager {
     // MARK: - Entry Management
     
     func addEntry(_ entry: TearEntry) {
-        modelContext.insert(entry)
-        entries.append(entry)
-        save()
+        let existingEntry = entries.first { existingEntry in
+            let sameDate = Calendar.current.isDate(existingEntry.date, equalTo: entry.date, toGranularity: .minute)
+            let sameEmoji = existingEntry.emojiId == entry.emojiId
+            let sameTag = existingEntry.tagId == entry.tagId
+            let sameNote = existingEntry.note == entry.note
+            
+            return sameDate && sameEmoji && sameTag && sameNote
+        }
+        
+        if existingEntry == nil {
+            modelContext.insert(entry)
+            entries.append(entry)
+            save()
+        } else {
+            print("Запись уже существует, дубликат не добавлен")
+        }
     }
     
     func deleteEntry(_ entry: TearEntry) {
@@ -75,20 +301,32 @@ class TearDataManager {
         save()
     }
     
-    func updateEntry(_ entry: TearEntry) {
-        if let index = entries.firstIndex(where: { $0.id == entry.id }) {
-            entries[index] = entry
-            save()
+    func updateEntry(_ existingEntry: TearEntry, with updatedEntry: TearEntry) {
+        existingEntry.date = updatedEntry.date
+        existingEntry.emojiId = updatedEntry.emojiId
+        existingEntry.tagId = updatedEntry.tagId
+        existingEntry.note = updatedEntry.note
+        
+        save()
+        
+        if let index = entries.firstIndex(where: { $0.id == existingEntry.id }) {
+            entries[index] = existingEntry
         }
     }
     
     // MARK: - Tag Management
     
     func addTag(_ name: String) {
-        let tag = TagItem(name: name)
-        modelContext.insert(tag)
-        tags.append(tag)
-        save()
+        let normalizedName = name.trimmingCharacters(in: .whitespaces)
+        if !tags.contains(where: { $0.name.lowercased() == normalizedName.lowercased() }) {
+            let tag = TagItem(name: normalizedName)
+            tag.order = tags.count
+            modelContext.insert(tag)
+            tags.append(tag)
+            save()
+        } else {
+            print("Тег '\(name)' уже существует, дубликат не добавлен")
+        }
     }
     
     func removeTag(_ tagId: UUID) {
@@ -97,7 +335,7 @@ class TearDataManager {
             tags.removeAll { $0.id == tagId }
             
             entries.forEach { entry in
-                if entry.tagId == tagId {
+                if entry.tagId?.id == tagId {
                     entry.tagId = nil
                 }
             }
@@ -109,7 +347,7 @@ class TearDataManager {
         let oldOrder = tags.map { $0.id }
         tags.move(fromOffsets: source, toOffset: destination)
         let newOrder = tags.map { $0.id }
-
+        
         if oldOrder != newOrder {
             for (index, tag) in tags.enumerated() {
                 tag.order = index
@@ -121,9 +359,14 @@ class TearDataManager {
     // MARK: - Emoji Management
     
     func addEmojiIntensity(_ emoji: EmojiIntensity) {
-        modelContext.insert(emoji)
-        emojiIntensities.append(emoji)
-        save()
+        if !emojiIntensities.contains(where: { $0.emoji == emoji.emoji }) {
+            emoji.order = emojiIntensities.count
+            modelContext.insert(emoji)
+            emojiIntensities.append(emoji)
+            save()
+        } else {
+            print("Эмодзи '\(emoji.emoji)' уже существует, дубликат не добавлен")
+        }
     }
     
     func removeEmojiIntensity(at index: Int) {
@@ -145,12 +388,12 @@ class TearDataManager {
         
         save()
     }
-
+    
     func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
         let oldOrder = emojiIntensities.map { $0.id }
         emojiIntensities.move(fromOffsets: source, toOffset: destination)
         let newOrder = emojiIntensities.map { $0.id }
-
+        
         if oldOrder != newOrder {
             for (index, emoji) in emojiIntensities.enumerated() {
                 emoji.order = index
@@ -158,7 +401,7 @@ class TearDataManager {
             save()
         }
     }
-
+    
     
     // MARK: - Data Analysis
     
@@ -179,17 +422,16 @@ class TearDataManager {
     }
     
     func getTag(for entry: TearEntry) -> TagItem? {
-        return tags.first(where: { $0.id == entry.tagId })
+        return entry.tagId
     }
     
-    func entriesForYear(_ year: Int, emojiId: UUID? = nil, tagIds: [UUID]? = nil) -> [TearEntry] {
+    func entriesForYear(_ year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [TearEntry] {
         let calendar = Calendar.current
         return entries.filter { entry in
             let entryYear = calendar.component(.year, from: entry.date)
-            
             let yearMatches = entryYear == year
-            let emojiMatches = emojiId == nil || entry.emojiId == emojiId
-            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
+            let emojiMatches = emoji == nil || entry.emojiId?.id == emoji?.id
+            let tagMatches = tags == nil || (entry.tagId != nil && tags!.contains { $0.id == entry.tagId!.id })
             
             return yearMatches && emojiMatches && tagMatches
         }
@@ -200,27 +442,17 @@ class TearDataManager {
     }
     
     func getEmoji(for entry: TearEntry) -> EmojiIntensity {
-        if let emoji = emojiIntensities.first(where: { $0.id == entry.emojiId }) {
-            return emoji
-        }
-        return emojiIntensities[0]
+        return entry.emojiId ?? emojiIntensities[0]
     }
     
-    func emojiStatistics(for year: Int, tagIds: [UUID]? = nil) -> [(emoji: String, count: Int)] {
-        let calendar = Calendar.current
-        let yearEntries = entries.filter { entry in
-            let entryYear = calendar.component(.year, from: entry.date)
-            
-            // Проверяем соответствие году и тегам
-            let yearMatches = entryYear == year
-            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
-            
-            return yearMatches && tagMatches
-        }
-        
+    func emojiStatistics(for year: Int, tags: [TagItem]? = nil) -> [(emoji: String, count: Int)] {
+        let yearEntries = entriesForYear(year, tags: tags)
         var emojiCounts: [UUID: Int] = [:]
+        
         yearEntries.forEach { entry in
-            emojiCounts[entry.emojiId, default: 0] += 1
+            if let emojiId = entry.emojiId?.id {
+                emojiCounts[emojiId, default: 0] += 1
+            }
         }
         
         return emojiIntensities.map { emoji in
@@ -228,32 +460,25 @@ class TearDataManager {
         }
     }
     
-    func tagStatistics(for year: Int, tagIds: [UUID]? = nil) -> [(tag: String, count: Int)] {
-        let yearEntries = entriesForYear(year, tagIds: tagIds)
+    func tagStatistics(for year: Int, tags: [TagItem]? = nil) -> [(tag: String, count: Int)] {
+        let yearEntries = entriesForYear(year, tags: tags)
         var tagCounts: [UUID: Int] = [:]
         
-        yearEntries.compactMap { $0.tagId }.forEach { tagId in
+        yearEntries.compactMap { $0.tagId?.id }.forEach { tagId in
             tagCounts[tagId, default: 0] += 1
         }
         
-        return tags.map { tag in
+        let targetTags = tags ?? self.tags
+        
+        return targetTags.map { tag in
             (tag: tag.name, count: tagCounts[tag.id] ?? 0)
         }
     }
     
-    func monthlyDataByIntensity(for year: Int, emojiId: UUID? = nil, tagIds: [UUID]? = nil) -> [(date: Date, intensityCounts: [Int])] {
+    func monthlyDataByIntensity(for year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [(date: Date, intensityCounts: [Int])] {
         let calendar = Calendar.current
-        
-        let yearEntries = entries.filter { entry in
-            let entryYear = calendar.component(.year, from: entry.date)
-            
-            let yearMatches = entryYear == year
-            let emojiMatches = emojiId == nil || entry.emojiId == emojiId
-            let tagMatches = tagIds == nil || (entry.tagId != nil && tagIds!.contains(entry.tagId!))
-            
-            return yearMatches && emojiMatches && tagMatches
-        }
-        
+        let yearEntries = entriesForYear(year, emoji: emoji, tags: tags)
+       
         return (1...12).map { month in
             let components = DateComponents(year: year, month: month, day: 1)
             let monthStart = calendar.date(from: components) ?? Date()
@@ -264,7 +489,9 @@ class TearDataManager {
             }
             
             entriesInMonth.forEach { entry in
-                emojiCounts[entry.emojiId, default: 0] += 1
+                if let emojiId = entry.emojiId?.id {
+                    emojiCounts[emojiId, default: 0] += 1
+                }
             }
             
             let intensityCounts = emojiIntensities.map { emoji in
@@ -278,8 +505,15 @@ class TearDataManager {
     func save() {
         do {
             try modelContext.save()
+            print("Данные успешно сохранены: \(Date())")
         } catch {
             print("Ошибка при сохранении: \(error)")
+            if let nsError = error as NSError? {
+                print("Код ошибки: \(nsError.code), описание: \(nsError.localizedDescription)")
+                if let reason = nsError.userInfo["NSLocalizedFailureReason"] as? String {
+                    print("Причина: \(reason)")
+                }
+            }
         }
     }
 }
