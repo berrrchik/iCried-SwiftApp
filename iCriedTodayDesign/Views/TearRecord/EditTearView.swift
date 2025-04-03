@@ -13,8 +13,18 @@ struct EditTearView: View {
             selectedTag: entry.tagId,
             note: entry.note,
             title: "Редактировать",
-            onSave: { updatedEntry in
-                dataManager.updateEntry(entry, with: updatedEntry)
+            onSave: { newDate, newEmojiId, newTagId, newNote in
+                do {
+                    try dataManager.updateEntry(
+                        withId: entry.id,
+                        newDate: newDate,
+                        newEmojiId: newEmojiId,
+                        newTagId: newTagId,
+                        newNote: newNote
+                    )
+                } catch {
+                    print("Ошибка обновления записи: \(error)")
+                }
             }
         )
     }

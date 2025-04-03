@@ -3,9 +3,6 @@ import SwiftData
 import Charts
 
 struct StatisticsView: View {
-    let entries: [TearEntry]
-    let tags: [TagItem]
-    let emojiIntensities: [EmojiIntensity]
     @Bindable var dataManager: TearDataManager
     @State private var selectedYear = Calendar.current.component(.year, from: Date())
     @State private var showingDeleteAlert = false
@@ -17,7 +14,7 @@ struct StatisticsView: View {
     
     var body: some View {
         Group {
-            if entries.isEmpty {
+            if dataManager.entries.isEmpty {
                 EmptyStateView(
                     title: "Нет данных для анализа",
                     subtitle: "Добавьте свой первый момент грусти, чтобы начать отслеживать свои эмоции",

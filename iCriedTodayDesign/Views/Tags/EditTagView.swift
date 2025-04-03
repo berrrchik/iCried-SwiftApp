@@ -45,13 +45,9 @@ struct EditTagView: View {
     private func saveTag() {
         let updatedTag = editedTag.trimmingCharacters(in: .whitespaces)
         if updatedTag.count >= 2 {
-            if let index = dataManager.tags.firstIndex(where: { $0.id == tag.id }) {
-                var updatedTagItem = tag
-                updatedTagItem.name = updatedTag
-                dataManager.tags[index] = updatedTagItem
-                dataManager.save()
-                isPresented = false
-            }
+            tag.name = updatedTag
+            dataManager.save()
+            isPresented = false
         }
     }
 }

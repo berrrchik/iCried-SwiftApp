@@ -7,13 +7,15 @@ struct AddTearView: View {
     var body: some View {
         TearFormView(
             dataManager: dataManager,
-            selectedDate: Date(),
-            selectedEmoji: dataManager.emojiIntensities[0],
-            selectedTag: nil,
-            note: "",
-            title: "Новая запись",
-            onSave: { entry in
-                dataManager.addEntry(entry)
+            title: "Добавить запись",
+            onSave: { newDate, newEmojiId, newTagId, newNote in
+                let newEntry = TearEntry(
+                    date: newDate,
+                    emojiId: newEmojiId,
+                    tagId: newTagId,
+                    note: newNote
+                )
+                dataManager.addEntry(newEntry)
             }
         )
     }

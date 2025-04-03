@@ -5,15 +5,7 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var dataManager: TearDataManager
     @State private var selectedTab = 0
-    
-    @Query(sort: [SortDescriptor(\TearEntry.date, order: .reverse)])
-    private var entries: [TearEntry]
-    
-    @Query(sort: [SortDescriptor(\TagItem.order)])
-    private var tags: [TagItem]
-    
-    @Query(sort: [SortDescriptor(\EmojiIntensity.order)])
-    private var emojiIntensities: [EmojiIntensity]
+    @State private var isSyncing = false
     
     init(modelContext: ModelContext) {
         _dataManager = State(initialValue: TearDataManager(modelContext: modelContext))
@@ -21,41 +13,54 @@ struct ContentView: View {
     }
     
     var body: some View {
-        TabView(selection: $selectedTab) {
-            NavigationStack {
-                TearLogView(entries: entries, tags: tags, emojiIntensities: emojiIntensities, dataManager: dataManager)
+        ZStack {
+            TabView(selection: $selectedTab) {
+                NavigationStack {
+                    TearLogView(dataManager: dataManager)
+                }
+                .tabItem {
+                    Label("Дневник", systemImage: "drop.fill")
+                }
+                .tag(0)
+                
+                NavigationStack {
+                    StatisticsView(dataManager: dataManager)
+                }
+                .tabItem {
+                    Label("Анализ", systemImage: "waveform.path.ecg")
+                }
+                .tag(1)
+                
+                NavigationStack {
+                    SettingsView(dataManager: dataManager)
+                }
+                .tabItem {
+                    Label("Настройки", systemImage: "slider.horizontal.3")
+                }
+                .tag(2)
             }
-            .tabItem {
-                Label("Дневник", systemImage: "drop.fill")
-            }
-            .tag(0)
             
-            NavigationStack {
-                StatisticsView(entries: entries, tags: tags, emojiIntensities: emojiIntensities, dataManager: dataManager)
+            if isSyncing {
+                ProgressView("Синхронизация данных...")
+                    .progressViewStyle(CircularProgressViewStyle())
+                    .padding()
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(10)
             }
-            .tabItem {
-                Label("Анализ", systemImage: "waveform.path.ecg")
-            }
-            .tag(1)
-            
-            NavigationStack {
-                SettingsView(dataManager: dataManager)
-            }
-            .tabItem {
-                Label("Настройки", systemImage: "slider.horizontal.3")
-            }
-            .tag(2)
         }
         .onAppear {
             dataManager.removeDuplicates()
+            Task {
+                isSyncing = true
+                await dataManager.syncWithCloudKit()
+                isSyncing = false
+            }
         }
     }
 }
 
 struct TearLogView: View {
-    let entries: [TearEntry]
-    let tags: [TagItem]
-    let emojiIntensities: [EmojiIntensity]
+
     @Bindable var dataManager: TearDataManager
     @State private var showingAddTear = false
     @State private var showingDeleteAlert = false
@@ -66,7 +71,7 @@ struct TearLogView: View {
         VStack(spacing: -5) {
             headerView
             
-            if entries.isEmpty {
+            if dataManager.entries.isEmpty {
                 EmptyStateView(
                     title: "Начните свой путь",
                     subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
@@ -124,6 +129,7 @@ struct TearLogView: View {
                     .foregroundColor(.gray)) {
                         ForEach(section.records) { entry in
                             TearCard(entry: entry, dataManager: dataManager)
+                                .id(entry.id)
                                 .swipeActions(allowsFullSwipe: false) {
                                     Button() {
                                         entryToDelete = entry
@@ -133,11 +139,14 @@ struct TearLogView: View {
                                     }
                                     .tint(.red)
                                 }
+                                .transition(.opacity)
                         }
                     }
             }
         }
         .listStyle(InsetGroupedListStyle())
+        .id(dataManager.syncTrigger)
+        .animation(.easeInOut(duration: 0.5), value: dataManager.entries)
     }
 }
 

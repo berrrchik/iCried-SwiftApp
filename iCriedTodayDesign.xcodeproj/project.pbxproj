@@ -27,7 +27,9 @@
 		577C75C42D9C90AF0052ECF3 /* TagManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C32D9C90A90052ECF3 /* TagManager.swift */; };
 		577C75C62D9C90B40052ECF3 /* EmojiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C52D9C90B20052ECF3 /* EmojiManager.swift */; };
 		577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */; };
-		577C75CA2D9C90C60052ECF3 /* PersistenceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C92D9C90C50052ECF3 /* PersistenceManager.swift */; };
+		577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */; };
+		577C75D02D9E91300052ECF3 /* DataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75CF2D9E912D0052ECF3 /* DataLoader.swift */; };
+		577C75D22D9E92290052ECF3 /* DuplicateRemover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */; };
 		57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57AE18F52D66782D002A3FDB /* EditTearView.swift */; };
 		57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */; };
 		57DE81632D6627FD0097709F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81622D6627FD0097709F /* ContentView.swift */; };
@@ -81,7 +83,9 @@
 		577C75C32D9C90A90052ECF3 /* TagManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManager.swift; sourceTree = "<group>"; };
 		577C75C52D9C90B20052ECF3 /* EmojiManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiManager.swift; sourceTree = "<group>"; };
 		577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataAnalyzer.swift; sourceTree = "<group>"; };
-		577C75C92D9C90C50052ECF3 /* PersistenceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PersistenceManager.swift; sourceTree = "<group>"; };
+		577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManagerProtocol.swift; sourceTree = "<group>"; };
+		577C75CF2D9E912D0052ECF3 /* DataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataLoader.swift; sourceTree = "<group>"; };
+		577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateRemover.swift; sourceTree = "<group>"; };
 		57AE18F52D66782D002A3FDB /* EditTearView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditTearView.swift; sourceTree = "<group>"; };
 		57DE815D2D6627FD0097709F /* iCriedTodayDesign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCriedTodayDesign.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCriedTodayDesignApp.swift; sourceTree = "<group>"; };
@@ -168,12 +172,14 @@
 		577C75BE2D9C90490052ECF3 /* DataManagement */ = {
 			isa = PBXGroup;
 			children = (
-				577C75C92D9C90C50052ECF3 /* PersistenceManager.swift */,
+				577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */,
+				577C75CF2D9E912D0052ECF3 /* DataLoader.swift */,
 				577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */,
 				577C75C52D9C90B20052ECF3 /* EmojiManager.swift */,
 				577C75C32D9C90A90052ECF3 /* TagManager.swift */,
 				577C75C12D9C90A10052ECF3 /* EntryManager.swift */,
 				577C75BF2D9C90900052ECF3 /* CloudKitManager.swift */,
+				577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */,
 				57DE81922D66651A0097709F /* TearDataManager.swift */,
 			);
 			path = DataManagement;
@@ -395,6 +401,7 @@
 			files = (
 				57DE819B2D66651A0097709F /* TearDataManager.swift in Sources */,
 				5739682B2D70C03500679200 /* TearFormView.swift in Sources */,
+				577C75D22D9E92290052ECF3 /* DuplicateRemover.swift in Sources */,
 				572787BE2D80B56B00639424 /* TagItem.swift in Sources */,
 				577C75C62D9C90B40052ECF3 /* EmojiManager.swift in Sources */,
 				571049112D874CC0002AA105 /* AddTagView.swift in Sources */,
@@ -408,7 +415,7 @@
 				571049152D8755F1002AA105 /* AddEmojiView.swift in Sources */,
 				57DE819C2D66651A0097709F /* TearEntry.swift in Sources */,
 				577C75C02D9C90950052ECF3 /* CloudKitManager.swift in Sources */,
-				577C75CA2D9C90C60052ECF3 /* PersistenceManager.swift in Sources */,
+				577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */,
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
@@ -417,6 +424,7 @@
 				5739682F2D70DE1200679200 /* FlowLayout.swift in Sources */,
 				577C75C22D9C90A30052ECF3 /* EntryManager.swift in Sources */,
 				57DE81632D6627FD0097709F /* ContentView.swift in Sources */,
+				577C75D02D9E91300052ECF3 /* DataLoader.swift in Sources */,
 				573968342D70F12500679200 /* SettingsView.swift in Sources */,
 				57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */,
 				573968332D70F12500679200 /* TagManagementView.swift in Sources */,

@@ -4,14 +4,14 @@ import SwiftData
 struct TearFormView: View {
     @Environment(\.dismiss) var dismiss
     @Bindable var dataManager: TearDataManager
-
+    
     @State var selectedDate: Date
     @State var selectedEmoji: EmojiIntensity?
-    @State var selectedTag: TagItem?          
+    @State var selectedTag: TagItem?
     @State var note: String
     
     let title: String
-    let onSave: (TearEntry) -> Void
+    let onSave: (Date, EmojiIntensity?, TagItem?, String) -> Void
     
     var isFormValid: Bool {
         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -24,7 +24,7 @@ struct TearFormView: View {
          selectedTag: TagItem? = nil,
          note: String = "",
          title: String,
-         onSave: @escaping (TearEntry) -> Void) {
+         onSave: @escaping (Date, EmojiIntensity?, TagItem?, String) -> Void) {
         self.dataManager = dataManager
         self._selectedDate = State(initialValue: selectedDate)
         self._selectedEmoji = State(initialValue: selectedEmoji ?? dataManager.emojiIntensities.first!)
@@ -55,13 +55,7 @@ struct TearFormView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Сохранить") {
                         let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-                        let entry = TearEntry(
-                            date: selectedDate,
-                            emojiId: selectedEmoji,
-                            tagId: selectedTag,
-                            note: trimmedNote
-                        )
-                        onSave(entry)
+                        onSave(selectedDate, selectedEmoji, selectedTag, trimmedNote)
                         dismiss()
                     }
                     .fontWeight(.bold)
