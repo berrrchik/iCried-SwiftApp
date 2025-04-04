@@ -148,6 +148,7 @@ struct TearLogView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
+        .id(dataManager.syncTrigger)
     }
     
     private var groupedEntries: [(month: String, records: [TearEntry])] {
