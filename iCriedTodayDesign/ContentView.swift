@@ -16,7 +16,7 @@ struct ContentView: View {
         ZStack {
             TabView(selection: $selectedTab) {
                 NavigationStack {
-                    TearLogView(dataManager: dataManager)
+                    TearLogView(dataManager: dataManager, modelContext: modelContext)
                 }
                 .tabItem {
                     Label("Дневник", systemImage: "drop.fill")
@@ -41,11 +41,18 @@ struct ContentView: View {
             }
             
             if isSyncing {
-                ProgressView("Синхронизация данных...")
-                    .progressViewStyle(CircularProgressViewStyle())
-                    .padding()
-                    .background(Color.white.opacity(0.8))
-                    .cornerRadius(10)
+                Color.gray.opacity(0.4)
+                    .ignoresSafeArea()
+                    .overlay(
+                        VStack {
+                            ProgressView("Синхронизация данных...")
+                                .progressViewStyle(CircularProgressViewStyle())
+                                .font(.title2)
+                                .padding()
+                                .background(Color.white.opacity(0.9))
+                                .cornerRadius(10)
+                        }
+                    )
             }
         }
         .onAppear {
@@ -60,18 +67,25 @@ struct ContentView: View {
 }
 
 struct TearLogView: View {
-
     @Bindable var dataManager: TearDataManager
+    let modelContext: ModelContext
+    @Query(sort: \TearEntry.date, order: .reverse) private var entries: [TearEntry]
     @State private var showingAddTear = false
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
     @State private var isRefreshing = false
     
+    init(dataManager: TearDataManager, modelContext: ModelContext) {
+        self.dataManager = dataManager
+        self.modelContext = modelContext
+        _entries = Query(sort: [SortDescriptor(\TearEntry.date, order: .reverse)], animation: .default)
+    }
+    
     var body: some View {
         VStack(spacing: -5) {
             headerView
             
-            if dataManager.entries.isEmpty {
+            if entries.isEmpty {
                 EmptyStateView(
                     title: "Начните свой путь",
                     subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
@@ -79,6 +93,7 @@ struct TearLogView: View {
                     buttonTitle: "Добавить запись",
                     action: { showingAddTear = true }
                 )
+                .transition(.opacity)
             } else {
                 entriesList
                     .refreshable {
@@ -88,6 +103,7 @@ struct TearLogView: View {
                     }
             }
         }
+        .animation(.easeInOut(duration: 0.3), value: entries.isEmpty)
         .sheet(isPresented: $showingAddTear) {
             AddTearView(dataManager: dataManager)
         }
@@ -95,7 +111,11 @@ struct TearLogView: View {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
                 if let entry = entryToDelete {
-                    dataManager.deleteEntry(entry)
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        modelContext.delete(entry)
+                        try? modelContext.save()
+                        dataManager.updateAnalyzer()
+                    }
                 }
                 entryToDelete = nil
             }
@@ -123,30 +143,50 @@ struct TearLogView: View {
     
     private var entriesList: some View {
         List {
-            ForEach(dataManager.groupedEntries, id: \.month) { section in
-                Section(header: Text(section.month)
-                    .font(.headline)
-                    .foregroundColor(.gray)) {
-                        ForEach(section.records) { entry in
-                            TearCard(entry: entry, dataManager: dataManager)
-                                .id(entry.id)
-                                .swipeActions(allowsFullSwipe: false) {
-                                    Button() {
-                                        entryToDelete = entry
-                                        showingDeleteAlert = true
-                                    } label: {
-                                        Label("Удалить", systemImage: "trash")
-                                    }
-                                    .tint(.red)
-                                }
-                                .transition(.opacity)
-                        }
-                    }
+            ForEach(groupedEntries, id: \.month) { section in
+                entriesSection(for: section)
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .id(dataManager.syncTrigger)
-        .animation(.easeInOut(duration: 0.5), value: dataManager.entries)
+    }
+    
+    private var groupedEntries: [(month: String, records: [TearEntry])] {
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale(identifier: "ru_RU")
+        dateFormatter.dateFormat = "LLLL yyyy"
+        
+        let grouped = Dictionary(grouping: entries) { entry in
+            dateFormatter.string(from: entry.date)
+        }
+        
+        return grouped.map { (month: $0.key, records: $0.value.sorted { $0.date > $1.date }) }
+            .sorted { $0.records.first?.date ?? Date() > $1.records.first?.date ?? Date() }
+    }
+    
+    private func entriesSection(for section: (month: String, records: [TearEntry])) -> some View {
+        Section(header: Text(section.month)
+            .font(.headline)
+            .foregroundColor(.gray)) {
+                ForEach(section.records) { entry in
+                    entryRow(for: entry)
+                        .transition(.opacity)
+                }
+                .animation(.easeInOut(duration: 0.3), value: section.records)
+            }
+    }
+    
+    private func entryRow(for entry: TearEntry) -> some View {
+        TearCard(entry: entry, dataManager: dataManager)
+            .id(entry.id)
+            .swipeActions(allowsFullSwipe: false) {
+                Button() {
+                    entryToDelete = entry
+                    showingDeleteAlert = true
+                } label: {
+                    Label("Удалить", systemImage: "trash")
+                }
+                .tint(.red)
+            }
     }
 }
 

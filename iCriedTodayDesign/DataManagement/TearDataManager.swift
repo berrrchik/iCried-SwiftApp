@@ -15,6 +15,7 @@ class TearDataManager: DataManagerProtocol {
     private let duplicateRemover: DuplicateRemover
     
     var syncTrigger = UUID()
+    var isSyncing = false
     var entries: [TearEntry] { entryManager.entries }
     var tags: [TagItem] { tagManager.tags }
     var emojiIntensities: [EmojiIntensity] { emojiManager.emojiIntensities }
@@ -127,13 +128,20 @@ class TearDataManager: DataManagerProtocol {
     
     // MARK: - Data Analysis
     
-    private func updateAnalyzer() {
+    func updateAnalyzer() {
         dataAnalyzer = DataAnalyzer(entries: entryManager.entries, tags: tagManager.tags, emojiIntensities: emojiManager.emojiIntensities)
         print("Анализатор данных обновлён")
     }
     
     var availableYears: [Int] { dataAnalyzer.availableYears }
-    var groupedEntries: [(month: String, records: [TearEntry])] { dataAnalyzer.groupedEntries }
+    
+    var groupedEntries: [(month: String, records: [TearEntry])] {
+        print("Запрашиваем groupedEntries")
+        let result = dataAnalyzer.groupedEntries
+        print("Количество записей в groupedEntries: \(result.reduce(0) { $0 + $1.records.count })")
+        return result
+    }
+    
     func getTag(for entry: TearEntry) -> TagItem? { dataAnalyzer.getTag(for: entry) }
     func entriesForYear(_ year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [TearEntry] {
         dataAnalyzer.entriesForYear(year, emoji: emoji, tags: tags)
@@ -158,25 +166,9 @@ class TearDataManager: DataManagerProtocol {
         save()
         print("Дубликаты удалены")
     }
-    
-//    func syncWithCloudKit() async {
-//        cloudKitSyncManager.checkCloudKitStatus()
-//        
-//        await cloudKitSyncManager.syncWithCloudKit(
-//            entries: entryManager.entries,
-//            tags: tagManager.tags,
-//            emojiIntensities: emojiManager.emojiIntensities
-//        )
-//        
-//        entryManager.reloadEntries()
-//        tagManager.reloadTags()
-//        emojiManager.reloadEmojiIntensities()
-//        updateAnalyzer()
-//        print("Синхронизация с CloudKit выполнена")
-//    }
-    
-    // В TearDataManager.swift
     func syncWithCloudKit() async {
+        print("Начало синхронизации с CloudKit")
+        isSyncing = true
         cloudKitSyncManager.checkCloudKitStatus()
         
         await cloudKitSyncManager.syncWithCloudKit(
@@ -186,23 +178,18 @@ class TearDataManager: DataManagerProtocol {
         )
         
         await MainActor.run {
-            print("Данные ДО обновления:")
-            print("Записей: \(entryManager.entries.count)")
-            print("Тегов: \(tagManager.tags.count)")
-            print("Эмодзи: \(emojiManager.emojiIntensities.count)")
-            
             entryManager.reloadEntries()
             tagManager.reloadTags()
             emojiManager.reloadEmojiIntensities()
             
-            print("\nДанные ПОСЛЕ обновления:")
-            print("Записей: \(entryManager.entries.count)")
-            print("Тегов: \(tagManager.tags.count)")
-            print("Эмодзи: \(emojiManager.emojiIntensities.count)")
-            
             updateAnalyzer()
+            
+            save()
+            
             syncTrigger = UUID()
+            
+            isSyncing = false
+            print("Синхронизация завершена")
         }
     }
-    
 }
