@@ -11,15 +11,6 @@ class TagManager {
         loadTags()
     }
     
-//    private func loadTags() {
-//        do {
-//            let descriptor = FetchDescriptor<TagItem>(sortBy: [.init(\.order, order: .forward)])
-//            tags = try modelContext.fetch(descriptor)
-//        } catch {
-//            print("Ошибка при загрузке тегов: \(error)")
-//        }
-//    }
-    // В TagManager.swift
     private func loadTags() {
         do {
             let descriptor = FetchDescriptor<TagItem>(sortBy: [.init(\.order, order: .forward)])

@@ -11,16 +11,6 @@ class TearEntryManager {
         loadEntries()
     }
     
-//    private func loadEntries() {
-//        do {
-//            let descriptor = FetchDescriptor<TearEntry>(sortBy: [.init(\.date, order: .reverse)])
-//            entries = try modelContext.fetch(descriptor)
-//        } catch {
-//            print("Ошибка при загрузке записей: \(error)")
-//        }
-//    }
-    
-    // В TearEntryManager.swift
     private func loadEntries() {
         do {
             let descriptor = FetchDescriptor<TearEntry>(sortBy: [.init(\.date, order: .reverse)])
@@ -64,11 +54,34 @@ class TearEntryManager {
     func updateEntry(withId entryId: UUID, newDate: Date, newEmojiId: EmojiIntensity?, newTagId: TagItem?, newNote: String) throws {
         let fetchDescriptor = FetchDescriptor<TearEntry>(predicate: #Predicate { $0.id == entryId })
         if let existingEntry = try modelContext.fetch(fetchDescriptor).first {
+            if let newEmojiId = newEmojiId {
+                let emojiDescriptor = FetchDescriptor<EmojiIntensity>()
+                let allEmojis = try modelContext.fetch(emojiDescriptor)
+                if let emojiInContext = allEmojis.first(where: { $0.id == newEmojiId.id }) {
+                    existingEntry.emojiId = emojiInContext
+                } else {
+                    print("Эмодзи с id \(newEmojiId.id) не найден в текущем контексте")
+                }
+            } else {
+                existingEntry.emojiId = nil
+            }
+
+            if let newTagId = newTagId {
+                let tagDescriptor = FetchDescriptor<TagItem>()
+                let allTags = try modelContext.fetch(tagDescriptor)
+                if let tagInContext = allTags.first(where: { $0.id == newTagId.id }) {
+                    existingEntry.tagId = tagInContext
+                } else {
+                    print("Тег с id \(newTagId.id) не найден в текущем контексте")
+                }
+            } else {
+                existingEntry.tagId = nil
+            }
+
             existingEntry.date = newDate
-            existingEntry.emojiId = newEmojiId
-            existingEntry.tagId = newTagId
             existingEntry.note = newNote
             try modelContext.save()
+            
             if let index = entries.firstIndex(where: { $0.id == entryId }) {
                 entries[index] = existingEntry
             }

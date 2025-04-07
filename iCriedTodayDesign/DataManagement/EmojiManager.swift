@@ -11,16 +11,6 @@ class EmojiIntensityManager {
         loadEmojiIntensities()
     }
     
-//    private func loadEmojiIntensities() {
-//        do {
-//            let descriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\.order, order: .forward)])
-//            emojiIntensities = try modelContext.fetch(descriptor)
-//        } catch {
-//            print("Ошибка при загрузке эмодзи: \(error)")
-//        }
-//    }
-    
-    // В EmojiIntensityManager.swift
     private func loadEmojiIntensities() {
         do {
             let descriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\.order, order: .forward)])
