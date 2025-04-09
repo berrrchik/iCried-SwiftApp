@@ -92,6 +92,7 @@ struct EditEmojiView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Сохранить") {
                         saveChanges()
+                        dismiss()
                     }
                     .disabled(emoji.isEmpty)
                 }

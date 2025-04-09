@@ -35,6 +35,7 @@ struct EditTagView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Сохранить") {
                         saveTag()
+                        dismiss()
                     }
                     .disabled(editedTag.count < 2)
                 }
