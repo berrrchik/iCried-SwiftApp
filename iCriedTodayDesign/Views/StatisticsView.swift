@@ -103,10 +103,11 @@ struct StatisticsView: View {
                 )
                 
                 ForEach(monthlyData, id: \.date) { item in
-                    ForEach(Array(dataManager.emojiIntensities.enumerated()), id: \.element.id) { index, emojiIntensity in
-                        if index < item.intensityCounts.count {
-                            let startValue = index == 0 ? 0 : item.intensityCounts.prefix(index).reduce(0, +)
-                            let endValue = startValue + item.intensityCounts[index]
+                    let reversedIntensityCounts = Array(item.intensityCounts.reversed())
+                    ForEach(Array(dataManager.emojiIntensities.reversed().enumerated()), id: \.element.id) { index, emojiIntensity in
+                        if index < reversedIntensityCounts.count {
+                            let startValue = index == 0 ? 0 : reversedIntensityCounts.prefix(index).reduce(0, +)
+                            let endValue = startValue + reversedIntensityCounts[index]
                             
                             BarMark(
                                 x: .value("Месяц", item.date, unit: .month),
