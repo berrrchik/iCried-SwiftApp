@@ -9,47 +9,30 @@ struct ContentView: View {
     var body: some View {
         Group {
             if let dataManager {
-                ZStack {
-                    TabView(selection: $selectedTab) {
-                        NavigationStack {
-                            TearLogView(dataManager: dataManager)
-                        }
-                        .tabItem {
-                            Label("Дневник", systemImage: "drop.fill")
-                        }
-                        .tag(0)
-                        
-                        NavigationStack {
-                            StatisticsView(dataManager: dataManager)
-                        }
-                        .tabItem {
-                            Label("Анализ", systemImage: "waveform.path.ecg")
-                        }
-                        .tag(1)
-                        
-                        NavigationStack {
-                            SettingsView(dataManager: dataManager)
-                        }
-                        .tabItem {
-                            Label("Настройки", systemImage: "slider.horizontal.3")
-                        }
-                        .tag(2)
+                TabView(selection: $selectedTab) {
+                    NavigationStack {
+                        TearLogView(dataManager: dataManager)
                     }
+                    .tabItem {
+                        Label("Дневник", systemImage: "drop.fill")
+                    }
+                    .tag(0)
                     
-                    if dataManager.isSyncing {
-                        Color.gray.opacity(0.4)
-                            .ignoresSafeArea()
-                            .overlay(
-                                VStack {
-                                    ProgressView("Синхронизация данных...")
-                                        .progressViewStyle(CircularProgressViewStyle())
-                                        .font(.title2)
-                                        .padding()
-                                        .background(Color.white.opacity(0.9))
-                                        .cornerRadius(10)
-                                }
-                            )
+                    NavigationStack {
+                        StatisticsView(dataManager: dataManager)
                     }
+                    .tabItem {
+                        Label("Анализ", systemImage: "waveform.path.ecg")
+                    }
+                    .tag(1)
+                    
+                    NavigationStack {
+                        SettingsView(dataManager: dataManager)
+                    }
+                    .tabItem {
+                        Label("Настройки", systemImage: "slider.horizontal.3")
+                    }
+                    .tag(2)
                 }
             } else {
                 ProgressView("Загрузка...")
@@ -63,7 +46,6 @@ struct ContentView: View {
             
             let manager = TearDataManager(modelContext: modelContext)
             dataManager = manager
-            await manager.syncWithCloudKit()
         }
     }
 }
@@ -91,7 +73,7 @@ struct TearLogView: View {
             } else {
                 entriesList
                     .refreshable {
-                        await dataManager.syncWithCloudKit()
+                        await dataManager.refreshData()
                     }
             }
         }
@@ -138,7 +120,7 @@ struct TearLogView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .id(dataManager.syncTrigger)
+        .id(dataManager.refreshTrigger)
     }
     
     private var groupedEntries: [(month: String, records: [TearEntry])] {

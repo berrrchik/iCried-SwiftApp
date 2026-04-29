@@ -11,12 +11,10 @@ class TearDataManager: DataManagerProtocol {
     private let tagManager: TagManager
     private let emojiManager: EmojiIntensityManager
     private let dataLoader: DataLoader
-    private let cloudKitSyncManager: CloudKitSyncManager
     private var dataAnalyzer: DataAnalyzer
-    private let duplicateRemover: DuplicateRemover
+    private var remoteChangeObserver: AnyCancellable?
     
-    var syncTrigger = UUID()
-    var isSyncing = false
+    var refreshTrigger = UUID()
     var entries: [TearEntry] { entryManager.entries }
     var tags: [TagItem] { tagManager.tags }
     var emojiIntensities: [EmojiIntensity] { emojiManager.emojiIntensities }
@@ -27,13 +25,12 @@ class TearDataManager: DataManagerProtocol {
         self.tagManager = TagManager(modelContext: modelContext)
         self.emojiManager = EmojiIntensityManager(modelContext: modelContext)
         self.dataLoader = DataLoader(modelContext: modelContext, emojiManager: emojiManager, tagManager: tagManager)
-        self.cloudKitSyncManager = CloudKitSyncManager(modelContext: modelContext, entries: [], tags: [], emojiIntensities: [])
-        self.duplicateRemover = DuplicateRemover(modelContext: modelContext, entryManager: entryManager, tagManager: tagManager, emojiManager: emojiManager)
         self.dataAnalyzer = DataAnalyzer(entries: entryManager.entries, tags: tagManager.tags, emojiIntensities: emojiManager.emojiIntensities)
         
         dataLoader.loadInitialData()
-        removeDuplicates()
+        runInitialCleanup()
         updateAnalyzer()
+        observeRemoteChanges()
     }
     
     // MARK: - Entry Management
@@ -147,34 +144,44 @@ class TearDataManager: DataManagerProtocol {
         dataAnalyzer.monthlyDataByIntensity(for: year, emoji: emoji, tags: tags)
     }
     
-    // MARK: - CloudKit Sync and Duplicates
-    
-    func removeDuplicates() {
+    // MARK: - Refresh and Migration Cleanup
+
+    func refreshData() async {
+        reloadFromStore(reason: "user refresh")
+    }
+
+    private func runInitialCleanup() {
+        let duplicateRemover = DuplicateRemover(
+            modelContext: modelContext,
+            entryManager: entryManager,
+            tagManager: tagManager,
+            emojiManager: emojiManager
+        )
+        
         duplicateRemover.removeDuplicates()
         updateAnalyzer()
         debugLog("Дубликаты удалены")
     }
-    func syncWithCloudKit() async {
-        debugLog("Начало синхронизации с CloudKit")
-        isSyncing = true
-        cloudKitSyncManager.checkCloudKitStatus()
-        
-        await cloudKitSyncManager.syncWithCloudKit(
-            entries: entryManager.entries,
-            tags: tagManager.tags,
-            emojiIntensities: emojiManager.emojiIntensities
-        )
-        
-        await MainActor.run {
-            entryManager.reloadEntries()
-            tagManager.reloadTags()
-            emojiManager.reloadEmojiIntensities()
-            
-            updateAnalyzer()
-            syncTrigger = UUID()
-            
-            isSyncing = false
-            debugLog("Синхронизация завершена")
-        }
+
+    private func reloadManagers() {
+        entryManager.reloadEntries()
+        tagManager.reloadTags()
+        emojiManager.reloadEmojiIntensities()
+    }
+    
+    private func reloadFromStore(reason: String) {
+        reloadManagers()
+        updateAnalyzer()
+        refreshTrigger = UUID()
+        debugLog("Данные обновлены из локального store: \(reason)")
+    }
+    
+    private func observeRemoteChanges() {
+        remoteChangeObserver = NotificationCenter.default
+            .publisher(for: .NSPersistentStoreRemoteChange)
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.reloadFromStore(reason: "remote change")
+            }
     }
 }

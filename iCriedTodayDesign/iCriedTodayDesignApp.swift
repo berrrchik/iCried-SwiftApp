@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import CloudKit
 
 @main
 struct iCriedTodayDesignApp: App {
@@ -28,7 +27,7 @@ struct iCriedTodayDesignApp: App {
     
     var body: some Scene {
         WindowGroup {
-            ContentView(modelContext: ModelContext(container))
+            ContentView()
                 .preferredColorScheme(.light)
         }
         .modelContainer(container)

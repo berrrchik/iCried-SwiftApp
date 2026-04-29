@@ -23,7 +23,6 @@
 		5739683A2D749EF100679200 /* EditEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573968392D749EF100679200 /* EditEmojiView.swift */; };
 		577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75B92D9C88650052ECF3 /* EmptyStateView.swift */; };
 		5810A1B52E16A0010097709F /* TearCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5810A1B42E16A0010097709F /* TearCard.swift */; };
-		577C75C02D9C90950052ECF3 /* CloudKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75BF2D9C90900052ECF3 /* CloudKitManager.swift */; };
 		577C75C22D9C90A30052ECF3 /* EntryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C12D9C90A10052ECF3 /* EntryManager.swift */; };
 		577C75C42D9C90AF0052ECF3 /* TagManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C32D9C90A90052ECF3 /* TagManager.swift */; };
 		577C75C62D9C90B40052ECF3 /* EmojiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C52D9C90B20052ECF3 /* EmojiManager.swift */; };
@@ -82,7 +81,6 @@
 		573968392D749EF100679200 /* EditEmojiView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditEmojiView.swift; sourceTree = "<group>"; };
 		577C75B92D9C88650052ECF3 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		5810A1B42E16A0010097709F /* TearCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TearCard.swift; sourceTree = "<group>"; };
-		577C75BF2D9C90900052ECF3 /* CloudKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CloudKitManager.swift; sourceTree = "<group>"; };
 		577C75C12D9C90A10052ECF3 /* EntryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryManager.swift; sourceTree = "<group>"; };
 		577C75C32D9C90A90052ECF3 /* TagManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManager.swift; sourceTree = "<group>"; };
 		577C75C52D9C90B20052ECF3 /* EmojiManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiManager.swift; sourceTree = "<group>"; };
@@ -186,7 +184,6 @@
 				577C75C52D9C90B20052ECF3 /* EmojiManager.swift */,
 				577C75C32D9C90A90052ECF3 /* TagManager.swift */,
 				577C75C12D9C90A10052ECF3 /* EntryManager.swift */,
-				577C75BF2D9C90900052ECF3 /* CloudKitManager.swift */,
 				577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */,
 				57DE81922D66651A0097709F /* TearDataManager.swift */,
 			);
@@ -424,7 +421,6 @@
 				577C75C42D9C90AF0052ECF3 /* TagManager.swift in Sources */,
 				571049152D8755F1002AA105 /* AddEmojiView.swift in Sources */,
 				57DE819C2D66651A0097709F /* TearEntry.swift in Sources */,
-				577C75C02D9C90950052ECF3 /* CloudKitManager.swift in Sources */,
 				577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */,
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
