@@ -4,8 +4,6 @@ import Combine
 
 @MainActor
 final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataManaging, StatisticsDataManaging, TagDataManaging, EmojiDataManaging, EntryFormDataProviding, EntryDisplayProviding {
-    private static let duplicateCleanupVersion = "duplicate-cleanup-v1"
-
     private let entryRepository: any EntryRepositoryProtocol
     private let tagRepository: any TagRepositoryProtocol
     private let emojiRepository: any EmojiRepositoryProtocol
@@ -30,7 +28,6 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
         )
         
         initialDataSeeder.seedIfNeeded()
-        runInitialCleanup()
         updateAnalyzer()
         observeRemoteChanges()
     }
@@ -156,25 +153,10 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
         dataAnalyzer.cryingMomentsLabel(for: count)
     }
     
-    // MARK: - Refresh and Migration Cleanup
+    // MARK: - Refresh
 
     func refreshData() async {
         reloadFromStore(reason: "user refresh")
-    }
-
-    private func runInitialCleanup() {
-        guard shouldRunDuplicateCleanup else { return }
-
-        let duplicateRemover = DuplicateRemover(
-            entryRepository: entryRepository,
-            tagRepository: tagRepository,
-            emojiRepository: emojiRepository
-        )
-        
-        duplicateRemover.removeDuplicates()
-        updateAnalyzer()
-        UserDefaults.standard.set(true, forKey: Self.duplicateCleanupVersion)
-        debugLog("Дубликаты удалены")
     }
 
     private func reloadRepositories() {
@@ -199,9 +181,5 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
                     self.reloadFromStore(reason: "remote change")
                 }
             }
-    }
-
-    private var shouldRunDuplicateCleanup: Bool {
-        !UserDefaults.standard.bool(forKey: Self.duplicateCleanupVersion)
     }
 }
