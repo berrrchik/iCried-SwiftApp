@@ -166,9 +166,9 @@ final class iCriedTodayDesignTests: XCTestCase {
     func testDuplicateRemoverCollapsesDuplicateTags() throws {
         let container = try makeInMemoryContainer()
         let modelContext = ModelContext(container)
-        let entryManager = TearEntryManager(modelContext: modelContext)
-        let tagManager = TagManager(modelContext: modelContext)
-        let emojiManager = EmojiIntensityManager(modelContext: modelContext)
+        let entryRepository = EntryRepository(modelContext: modelContext)
+        let tagRepository = TagRepository(modelContext: modelContext)
+        let emojiRepository = EmojiRepository(modelContext: modelContext)
         
         let firstTag = TagItem(name: "#Работа", order: 0)
         let duplicateTag = TagItem(name: "#работа", order: 1)
@@ -177,18 +177,90 @@ final class iCriedTodayDesignTests: XCTestCase {
         modelContext.insert(duplicateTag)
         try modelContext.save()
         
-        tagManager.reloadTags()
+        tagRepository.reloadTags()
         
         let duplicateRemover = DuplicateRemover(
-            modelContext: modelContext,
-            entryManager: entryManager,
-            tagManager: tagManager,
-            emojiManager: emojiManager
+            entryRepository: entryRepository,
+            tagRepository: tagRepository,
+            emojiRepository: emojiRepository
         )
         
         duplicateRemover.removeDuplicates()
         
-        XCTAssertEqual(tagManager.tags.filter { $0.name.lowercased() == "#работа" }.count, 1)
+        XCTAssertEqual(tagRepository.tags.filter { $0.name.lowercased() == "#работа" }.count, 1)
+    }
+    
+    @MainActor
+    func testEntryRepositorySupportsAddEditDelete() throws {
+        let container = try makeInMemoryContainer()
+        let modelContext = ModelContext(container)
+        let repository = EntryRepository(modelContext: modelContext)
+        let emoji = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 0)
+        let tag = TagItem(name: "#Работа")
+        modelContext.insert(emoji)
+        modelContext.insert(tag)
+        try modelContext.save()
+        let entry = TearEntry(date: Date(), emojiId: emoji, tagId: tag, note: "Before")
+        
+        repository.addEntry(entry)
+        XCTAssertTrue(repository.entries.contains { $0.id == entry.id })
+        
+        try repository.updateEntry(
+            withId: entry.id,
+            newDate: entry.date,
+            newEmojiId: nil,
+            newTagId: nil,
+            newNote: "After"
+        )
+        
+        XCTAssertEqual(repository.entries.first(where: { $0.id == entry.id })?.note, "After")
+        
+        repository.deleteEntry(entry)
+        XCTAssertFalse(repository.entries.contains { $0.id == entry.id })
+    }
+    
+    @MainActor
+    func testTagRepositorySupportsAddEditDeleteAndReorder() throws {
+        let container = try makeInMemoryContainer()
+        let repository = TagRepository(modelContext: ModelContext(container))
+        
+        repository.addTag("#Один")
+        repository.addTag("#Два")
+        repository.addTag("#Три")
+        
+        guard let secondTag = repository.tags.first(where: { $0.name == "#Два" }) else {
+            return XCTFail("Expected second tag to exist")
+        }
+        
+        repository.updateTag(withId: secondTag.id, newName: "#ДваОбновлён")
+        XCTAssertTrue(repository.tags.contains { $0.name == "#ДваОбновлён" })
+        
+        repository.moveTag(from: IndexSet(integer: 2), to: 0)
+        XCTAssertEqual(repository.tags.first?.name, "#Три")
+        
+        repository.removeTag(secondTag.id)
+        XCTAssertFalse(repository.tags.contains { $0.id == secondTag.id })
+    }
+    
+    @MainActor
+    func testEmojiRepositorySupportsAddEditDeleteAndReorder() throws {
+        let container = try makeInMemoryContainer()
+        let repository = EmojiRepository(modelContext: ModelContext(container))
+        
+        repository.addEmojiIntensity(EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 0))
+        repository.addEmojiIntensity(EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 1))
+        repository.addEmojiIntensity(EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 2))
+        
+        var updatedEmoji = EmojiIntensity(emoji: "😶", color: .red, opacity: 0.5, order: 1)
+        updatedEmoji.id = repository.emojiIntensities[1].id
+        repository.updateEmojiIntensity(updatedEmoji, at: 1)
+        XCTAssertEqual(repository.emojiIntensities[1].emoji, "😶")
+        
+        repository.moveEmojiIntensity(from: IndexSet(integer: 2), to: 0)
+        XCTAssertEqual(repository.emojiIntensities.first?.emoji, "😭")
+        
+        repository.removeEmojiIntensity(at: 1)
+        XCTAssertEqual(repository.emojiIntensities.count, 2)
     }
     
     private func makeEntry(
