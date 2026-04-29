@@ -231,6 +231,158 @@ final class iCriedTodayDesignTests: XCTestCase {
     }
     
     @MainActor
+    func testStatisticsViewModelUpdatesSnapshotForFilterTransitions() throws {
+        let container = try makeInMemoryContainer()
+        let manager = TearDataManager(modelContext: ModelContext(container))
+        let workTag = TagItem(name: "#Phase5Work")
+        let familyTag = TagItem(name: "#Phase5Family")
+        let lightEmoji = EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 90)
+        let deepEmoji = EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 91)
+        
+        manager.addTag(workTag.name)
+        manager.addTag(familyTag.name)
+        manager.addEmojiIntensity(lightEmoji)
+        manager.addEmojiIntensity(deepEmoji)
+        
+        let savedWorkTag = try XCTUnwrap(manager.tags.first(where: { $0.name == workTag.name }))
+        let savedFamilyTag = try XCTUnwrap(manager.tags.first(where: { $0.name == familyTag.name }))
+        let savedLightEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == lightEmoji.emoji }))
+        let savedDeepEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == deepEmoji.emoji }))
+        
+        manager.addEntry(makeEntry(year: 2040, month: 4, day: 1, note: "Work April", emoji: savedDeepEmoji, tag: savedWorkTag))
+        manager.addEntry(makeEntry(year: 2040, month: 4, day: 2, note: "Family April", emoji: savedLightEmoji, tag: savedFamilyTag))
+        manager.addEntry(makeEntry(year: 2040, month: 5, day: 1, note: "Work May", emoji: savedDeepEmoji, tag: savedWorkTag))
+        
+        let viewModel = StatisticsViewModel(dataManager: manager)
+        viewModel.selectedYear = 2040
+        
+        XCTAssertEqual(viewModel.snapshot.filteredEntriesCount, 3)
+        
+        viewModel.toggleTag(savedWorkTag.id)
+        XCTAssertEqual(viewModel.snapshot.filteredEntriesCount, 2)
+        
+        viewModel.toggleEmoji(savedDeepEmoji.id)
+        XCTAssertEqual(viewModel.snapshot.filteredEntriesCount, 2)
+        
+        viewModel.toggleMonth(Calendar(identifier: .gregorian).date(from: DateComponents(year: 2040, month: 4, day: 1))!)
+        XCTAssertEqual(viewModel.snapshot.filteredEntriesCount, 1)
+        
+        viewModel.toggleMonth(Calendar(identifier: .gregorian).date(from: DateComponents(year: 2040, month: 4, day: 1))!)
+        XCTAssertEqual(viewModel.snapshot.filteredEntriesCount, 2)
+    }
+    
+    @MainActor
+    func testTearFormViewModelValidatesAndBuildsSavePayload() {
+        let tag = TagItem(name: "#Form")
+        let emoji = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 0)
+        let viewModel = TearFormViewModel(
+            availableTags: [tag],
+            availableEmojiIntensities: [emoji],
+            selectedEmoji: emoji,
+            selectedTag: tag,
+            note: "   "
+        )
+        
+        XCTAssertFalse(viewModel.isFormValid)
+        XCTAssertNil(viewModel.savePayload)
+        
+        viewModel.note = "  Valid note  "
+        
+        XCTAssertTrue(viewModel.isFormValid)
+        XCTAssertEqual(viewModel.savePayload?.note, "Valid note")
+        XCTAssertEqual(viewModel.savePayload?.selectedTag?.id, tag.id)
+        XCTAssertEqual(viewModel.savePayload?.selectedEmoji?.id, emoji.id)
+    }
+    
+    @MainActor
+    func testDiaryViewModelDeletesPendingEntry() throws {
+        let container = try makeInMemoryContainer()
+        let manager = TearDataManager(modelContext: ModelContext(container))
+        let emoji = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 200)
+        
+        manager.addEmojiIntensity(emoji)
+        manager.addTag("#DiaryDelete")
+        let tag = try XCTUnwrap(manager.tags.first(where: { $0.name == "#DiaryDelete" }))
+        let savedEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == emoji.emoji }))
+        let entry = makeEntry(year: 2041, note: "Delete me", emoji: savedEmoji, tag: tag)
+        manager.addEntry(entry)
+        
+        let viewModel = DiaryViewModel(dataManager: manager)
+        viewModel.presentDelete(for: entry)
+        
+        XCTAssertTrue(viewModel.showingDeleteAlert)
+        
+        viewModel.confirmDelete()
+        
+        XCTAssertFalse(viewModel.showingDeleteAlert)
+        XCTAssertFalse(manager.entries.contains { $0.id == entry.id })
+    }
+    
+    @MainActor
+    func testTagManagementViewModelSupportsEditMoveAndDeleteFlows() throws {
+        let container = try makeInMemoryContainer()
+        let manager = TearDataManager(modelContext: ModelContext(container))
+        manager.addTag("#Phase5A")
+        manager.addTag("#Phase5B")
+        
+        let viewModel = TagManagementViewModel(dataManager: manager)
+        let firstTag = try XCTUnwrap(viewModel.tags.first(where: { $0.name == "#Phase5A" }))
+        let secondTag = try XCTUnwrap(viewModel.tags.first(where: { $0.name == "#Phase5B" }))
+        
+        viewModel.presentEdit(for: firstTag)
+        XCTAssertEqual(viewModel.tagToEdit?.id, firstTag.id)
+        viewModel.dismissEdit()
+        XCTAssertNil(viewModel.tagToEdit)
+        
+        let fromIndex = try XCTUnwrap(viewModel.tags.firstIndex(where: { $0.id == secondTag.id }))
+        let toIndex = try XCTUnwrap(viewModel.tags.firstIndex(where: { $0.id == firstTag.id }))
+        viewModel.moveTags(from: IndexSet(integer: fromIndex), to: toIndex)
+        
+        let movedIndex = try XCTUnwrap(viewModel.tags.firstIndex(where: { $0.id == secondTag.id }))
+        XCTAssertLessThanOrEqual(movedIndex, toIndex)
+        
+        viewModel.presentDelete(for: firstTag)
+        XCTAssertTrue(viewModel.showingDeleteAlert)
+        viewModel.confirmDelete()
+        
+        XCTAssertFalse(viewModel.tags.contains { $0.id == firstTag.id })
+    }
+    
+    @MainActor
+    func testEmojiManagementViewModelSupportsEditMoveAndDeleteFlows() throws {
+        let container = try makeInMemoryContainer()
+        let manager = TearDataManager(modelContext: ModelContext(container))
+        let firstEmoji = EmojiIntensity(emoji: "🧪", color: .green, opacity: 0.7, order: 300)
+        let secondEmoji = EmojiIntensity(emoji: "🧫", color: .orange, opacity: 0.8, order: 301)
+        
+        manager.addEmojiIntensity(firstEmoji)
+        manager.addEmojiIntensity(secondEmoji)
+        
+        let viewModel = EmojiManagementViewModel(dataManager: manager)
+        let savedFirstEmoji = try XCTUnwrap(viewModel.emojiIntensities.first(where: { $0.emoji == firstEmoji.emoji }))
+        let savedSecondEmoji = try XCTUnwrap(viewModel.emojiIntensities.first(where: { $0.emoji == secondEmoji.emoji }))
+        
+        viewModel.presentEdit(for: savedFirstEmoji)
+        XCTAssertEqual(viewModel.emojiToEdit?.id, savedFirstEmoji.id)
+        viewModel.dismissEdit()
+        XCTAssertNil(viewModel.emojiToEdit)
+        
+        let fromIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedSecondEmoji.id }))
+        let toIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedFirstEmoji.id }))
+        viewModel.moveEmojis(from: IndexSet(integer: fromIndex), to: toIndex)
+        
+        let movedIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedSecondEmoji.id }))
+        XCTAssertLessThanOrEqual(movedIndex, toIndex)
+        
+        let deleteIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedFirstEmoji.id }))
+        viewModel.presentDelete(at: deleteIndex)
+        XCTAssertTrue(viewModel.showingDeleteAlert)
+        viewModel.confirmDelete()
+        
+        XCTAssertFalse(viewModel.emojiIntensities.contains { $0.id == savedFirstEmoji.id })
+    }
+    
+    @MainActor
     func testRefreshDataReloadsEntriesFromStore() async throws {
         let container = try makeInMemoryContainer()
         let modelContext = ModelContext(container)
