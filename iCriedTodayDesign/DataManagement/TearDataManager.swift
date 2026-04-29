@@ -3,6 +3,7 @@ import SwiftData
 import Combine
 import SwiftUI
 
+@MainActor
 @Observable
 class TearDataManager: DataManagerProtocol {
     private let modelContext: ModelContext
@@ -40,22 +41,19 @@ class TearDataManager: DataManagerProtocol {
     func addEntry(_ entry: TearEntry) {
         entryManager.addEntry(entry)
         updateAnalyzer()
-        save()
-        print("Добавлена новая запись: \(entry.note)")
+        debugLog("Добавлена новая запись: \(entry.note)")
     }
     
     func deleteEntry(_ entry: TearEntry) {
         entryManager.deleteEntry(entry)
         updateAnalyzer()
-        save()
-        print("Удалена запись: \(entry.note)")
+        debugLog("Удалена запись: \(entry.note)")
     }
     
     func updateEntry(withId entryId: UUID, newDate: Date, newEmojiId: EmojiIntensity?, newTagId: TagItem?, newNote: String) throws {
         try entryManager.updateEntry(withId: entryId, newDate: newDate, newEmojiId: newEmojiId, newTagId: newTagId, newNote: newNote)
         updateAnalyzer()
-        save()
-        print("Обновлена запись с id: \(entryId)")
+        debugLog("Обновлена запись с id: \(entryId)")
     }
     
     // MARK: - Tag Management
@@ -63,22 +61,19 @@ class TearDataManager: DataManagerProtocol {
     func addTag(_ name: String) {
         tagManager.addTag(name)
         updateAnalyzer()
-        save()
-        print("Добавлен тег: \(name)")
+        debugLog("Добавлен тег: \(name)")
     }
     
     func removeTag(_ tagId: UUID) {
         tagManager.removeTag(tagId)
         updateAnalyzer()
-        save()
-        print("Удалён тег с ID: \(tagId)")
+        debugLog("Удалён тег с ID: \(tagId)")
     }
     
     func moveTag(from source: IndexSet, to destination: Int) {
         tagManager.moveTag(from: source, to: destination)
         updateAnalyzer()
-        save()
-        print("Теги перемещены")
+        debugLog("Теги перемещены")
     }
     
     // MARK: - Emoji Management
@@ -86,43 +81,38 @@ class TearDataManager: DataManagerProtocol {
     func addEmojiIntensity(_ emoji: EmojiIntensity) {
         emojiManager.addEmojiIntensity(emoji)
         updateAnalyzer()
-        save()
-        print("Добавлен эмодзи: \(emoji.emoji)")
+        debugLog("Добавлен эмодзи: \(emoji.emoji)")
     }
     
     func removeEmojiIntensity(at index: Int) {
         let emoji = emojiIntensities[index]
         emojiManager.removeEmojiIntensity(at: index)
         updateAnalyzer()
-        save()
-        print("Удалён эмодзи: \(emoji.emoji)")
+        debugLog("Удалён эмодзи: \(emoji.emoji)")
     }
     
     func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
         emojiManager.updateEmojiIntensity(updatedEmoji, at: index)
         updateAnalyzer()
-        save()
-        print("Обновлён эмодзи: \(updatedEmoji.emoji)")
+        debugLog("Обновлён эмодзи: \(updatedEmoji.emoji)")
     }
     
     func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
         emojiManager.moveEmojiIntensity(from: source, to: destination)
         updateAnalyzer()
-        save()
-        print("Эмодзи перемещены")
+        debugLog("Эмодзи перемещены")
     }
     
     // MARK: - Persistence
     
     func save() {
         do {
-            entryManager.save()
-            tagManager.save()
-            emojiManager.save()
-            try modelContext.save()
-            print("Данные успешно сохранены в локальной базе")
+            if modelContext.hasChanges {
+                try modelContext.save()
+            }
+            debugLog("Данные успешно сохранены в локальной базе")
         } catch {
-            print("Ошибка сохранения данных: \(error.localizedDescription)")
+            debugLog("Ошибка сохранения данных: \(error.localizedDescription)")
         }
     }
     
@@ -130,15 +120,14 @@ class TearDataManager: DataManagerProtocol {
     
     func updateAnalyzer() {
         dataAnalyzer = DataAnalyzer(entries: entryManager.entries, tags: tagManager.tags, emojiIntensities: emojiManager.emojiIntensities)
-        print("Анализатор данных обновлён")
+        debugLog("Анализатор данных обновлён")
     }
     
     var availableYears: [Int] { dataAnalyzer.availableYears }
     
     var groupedEntries: [(month: String, records: [TearEntry])] {
-        print("Запрашиваем groupedEntries")
         let result = dataAnalyzer.groupedEntries
-        print("Количество записей в groupedEntries: \(result.reduce(0) { $0 + $1.records.count })")
+        debugLog("Количество записей в groupedEntries: \(result.reduce(0) { $0 + $1.records.count })")
         return result
     }
     
@@ -163,11 +152,10 @@ class TearDataManager: DataManagerProtocol {
     func removeDuplicates() {
         duplicateRemover.removeDuplicates()
         updateAnalyzer()
-        save()
-        print("Дубликаты удалены")
+        debugLog("Дубликаты удалены")
     }
     func syncWithCloudKit() async {
-        print("Начало синхронизации с CloudKit")
+        debugLog("Начало синхронизации с CloudKit")
         isSyncing = true
         cloudKitSyncManager.checkCloudKitStatus()
         
@@ -183,13 +171,10 @@ class TearDataManager: DataManagerProtocol {
             emojiManager.reloadEmojiIntensities()
             
             updateAnalyzer()
-            
-            save()
-            
             syncTrigger = UUID()
             
             isSyncing = false
-            print("Синхронизация завершена")
+            debugLog("Синхронизация завершена")
         }
     }
 }

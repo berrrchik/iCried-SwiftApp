@@ -15,17 +15,16 @@ class TagManager {
         do {
             let descriptor = FetchDescriptor<TagItem>(sortBy: [.init(\.order, order: .forward)])
             let newTags = try modelContext.fetch(descriptor)
-            print("Загружено тегов из базы: \(newTags.count)")
+            debugLog("Загружено тегов из базы: \(newTags.count)")
             tags = newTags
         } catch {
-            print("Ошибка при загрузке тегов: \(error)")
+            debugLog("Ошибка при загрузке тегов: \(error)")
         }
     }
     
     func reloadTags() {
         loadTags()
-        print("Тегов после перезагрузки: \(tags.count)")
-        save()
+        debugLog("Тегов после перезагрузки: \(tags.count)")
     }
     
     func addTag(_ name: String) {
@@ -37,7 +36,7 @@ class TagManager {
             tags.append(tag)
             save()
         } else {
-            print("Тег '\(name)' уже существует")
+            debugLog("Тег '\(name)' уже существует")
         }
     }
     
@@ -61,7 +60,7 @@ class TagManager {
         do {
             try modelContext.save()
         } catch {
-            print("Ошибка при сохранении тегов: \(error)")
+            debugLog("Ошибка при сохранении тегов: \(error)")
         }
     }
 }

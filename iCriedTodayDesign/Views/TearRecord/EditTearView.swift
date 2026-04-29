@@ -23,7 +23,7 @@ struct EditTearView: View {
                         newNote: newNote
                     )
                 } catch {
-                    print("Ошибка обновления записи: \(error)")
+                    debugLog("Ошибка обновления записи: \(error)")
                 }
             }
         )

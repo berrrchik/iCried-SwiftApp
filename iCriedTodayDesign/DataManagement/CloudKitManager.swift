@@ -3,6 +3,7 @@ import CloudKit
 import Combine
 import SwiftData
 
+@MainActor
 @Observable
 class CloudKitSyncManager {
     private var cloudSubscription: AnyCancellable?
@@ -26,7 +27,7 @@ class CloudKitSyncManager {
         let subscription = NotificationCenter.default.publisher(for: .NSPersistentStoreRemoteChange)
         cloudSubscription = subscription.sink { [weak self] _ in
             guard let self = self else { return }
-            print("Обнаружено изменение в CloudKit, можно запустить синхронизацию")
+            debugLog("Обнаружено изменение в CloudKit, можно запустить синхронизацию")
         }
     }
     
@@ -34,16 +35,16 @@ class CloudKitSyncManager {
         container.accountStatus { status, error in
             DispatchQueue.main.async {
                 if let error = error {
-                    print("Ошибка CloudKit: \(error.localizedDescription)")
+                    debugLog("Ошибка CloudKit: \(error.localizedDescription)")
                     return
                 }
                 switch status {
-                case .available: print("CloudKit доступен")
-                case .noAccount: print("Пользователь не вошел в iCloud")
-                case .restricted: print("CloudKit ограничен")
-                case .couldNotDetermine: print("Не удалось определить статус CloudKit")
-                case .temporarilyUnavailable: print("CloudKit временно недоступен")
-                @unknown default: print("Неизвестный статус CloudKit")
+                case .available: debugLog("CloudKit доступен")
+                case .noAccount: debugLog("Пользователь не вошел в iCloud")
+                case .restricted: debugLog("CloudKit ограничен")
+                case .couldNotDetermine: debugLog("Не удалось определить статус CloudKit")
+                case .temporarilyUnavailable: debugLog("CloudKit временно недоступен")
+                @unknown default: debugLog("Неизвестный статус CloudKit")
                 }
             }
         }
@@ -54,16 +55,16 @@ class CloudKitSyncManager {
         self.tags = tags
         self.emojiIntensities = emojiIntensities
         
-        print("Начинаем синхронизацию с CloudKit...")
+        debugLog("Начинаем синхронизацию с CloudKit...")
         
         do {
             try await fetchRecordsFromCloudKit()
             try await uploadLocalChangesToCloudKit()
             try modelContext.save()
-            print("Синхронизация с CloudKit завершена")
+            debugLog("Синхронизация с CloudKit завершена")
             UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "lastDataRefreshTime")
         } catch {
-            print("Ошибка синхронизации с CloudKit: \(error.localizedDescription)")
+            debugLog("Ошибка синхронизации с CloudKit: \(error.localizedDescription)")
         }
     }
     
@@ -88,7 +89,7 @@ class CloudKitSyncManager {
                         break
                     }
                 case .failure(let error):
-                    print("Ошибка загрузки записи \(recordType): \(error.localizedDescription)")
+                    debugLog("Ошибка загрузки записи \(recordType): \(error.localizedDescription)")
                 }
             }
         }
@@ -126,14 +127,14 @@ class CloudKitSyncManager {
     
     private func saveRecord(_ record: CKRecord) async throws {
         do {
-            let existingRecord = try await database.record(for: record.recordID)
+            let _ = try await database.record(for: record.recordID)
             let _ = try await database.save(record)
-            print("Сохранена запись: \(record.recordType) с ID \(record.recordID.recordName)")
+            debugLog("Сохранена запись: \(record.recordType) с ID \(record.recordID.recordName)")
         } catch CKError.unknownItem {
             let _ = try await database.save(record)
-            print("Создана новая запись: \(record.recordType) с ID \(record.recordID.recordName)")
+            debugLog("Создана новая запись: \(record.recordType) с ID \(record.recordID.recordName)")
         } catch {
-            print("Ошибка сохранения записи \(record.recordType): \(error.localizedDescription)")
+            debugLog("Ошибка сохранения записи \(record.recordType): \(error.localizedDescription)")
             throw error
         }
     }

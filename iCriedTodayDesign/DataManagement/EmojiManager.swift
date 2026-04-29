@@ -15,17 +15,16 @@ class EmojiIntensityManager {
         do {
             let descriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\.order, order: .forward)])
             let newEmojis = try modelContext.fetch(descriptor)
-            print("Загружено эмодзи из базы: \(newEmojis.count)")
+            debugLog("Загружено эмодзи из базы: \(newEmojis.count)")
             emojiIntensities = newEmojis
         } catch {
-            print("Ошибка при загрузке эмодзи: \(error)")
+            debugLog("Ошибка при загрузке эмодзи: \(error)")
         }
     }
     
     func reloadEmojiIntensities() {
         loadEmojiIntensities()
-        print("Эмодзи после перезагрузки: \(emojiIntensities.count)")
-        save()
+        debugLog("Эмодзи после перезагрузки: \(emojiIntensities.count)")
     }
     
     func addEmojiIntensity(_ emoji: EmojiIntensity) {
@@ -35,7 +34,7 @@ class EmojiIntensityManager {
             emojiIntensities.append(emoji)
             save()
         } else {
-            print("Эмодзи '\(emoji.emoji)' уже существует")
+            debugLog("Эмодзи '\(emoji.emoji)' уже существует")
         }
     }
     
@@ -68,7 +67,7 @@ class EmojiIntensityManager {
         do {
             try modelContext.save()
         } catch {
-            print("Ошибка при сохранении эмодзи: \(error)")
+            debugLog("Ошибка при сохранении эмодзи: \(error)")
         }
     }
 }

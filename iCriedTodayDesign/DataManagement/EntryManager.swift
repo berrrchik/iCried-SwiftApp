@@ -15,17 +15,16 @@ class TearEntryManager {
         do {
             let descriptor = FetchDescriptor<TearEntry>(sortBy: [.init(\.date, order: .reverse)])
             let newEntries = try modelContext.fetch(descriptor)
-            print("Загружено записей из базы: \(newEntries.count)")
+            debugLog("Загружено записей из базы: \(newEntries.count)")
             entries = newEntries
         } catch {
-            print("Ошибка при загрузке записей: \(error)")
+            debugLog("Ошибка при загрузке записей: \(error)")
         }
     }
     
     func reloadEntries() {
         loadEntries()
-        print("Записей после перезагрузки: \(entries.count)")
-        save()
+        debugLog("Записей после перезагрузки: \(entries.count)")
     }
     
     func addEntry(_ entry: TearEntry) {
@@ -41,7 +40,7 @@ class TearEntryManager {
             entries.append(entry)
             save()
         } else {
-            print("Запись уже существует, дубликат не добавлен")
+            debugLog("Запись уже существует, дубликат не добавлен")
         }
     }
     
@@ -60,7 +59,7 @@ class TearEntryManager {
                 if let emojiInContext = allEmojis.first(where: { $0.id == newEmojiId.id }) {
                     existingEntry.emojiId = emojiInContext
                 } else {
-                    print("Эмодзи с id \(newEmojiId.id) не найден в текущем контексте")
+                    debugLog("Эмодзи с id \(newEmojiId.id) не найден в текущем контексте")
                 }
             } else {
                 existingEntry.emojiId = nil
@@ -72,7 +71,7 @@ class TearEntryManager {
                 if let tagInContext = allTags.first(where: { $0.id == newTagId.id }) {
                     existingEntry.tagId = tagInContext
                 } else {
-                    print("Тег с id \(newTagId.id) не найден в текущем контексте")
+                    debugLog("Тег с id \(newTagId.id) не найден в текущем контексте")
                 }
             } else {
                 existingEntry.tagId = nil
@@ -94,7 +93,7 @@ class TearEntryManager {
         do {
             try modelContext.save()
         } catch {
-            print("Ошибка при сохранении записей: \(error)")
+            debugLog("Ошибка при сохранении записей: \(error)")
         }
     }
 }
