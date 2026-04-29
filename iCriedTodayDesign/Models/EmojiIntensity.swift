@@ -15,8 +15,7 @@ final class EmojiIntensity {
     }
     
     init(emoji: String, color: Color, opacity: Double = 1.0, order: Int = 0) {
-        let emojiData = emoji.data(using: .utf8)!
-        self.id = UUID(uuidString: emojiData.base64EncodedString()) ?? UUID()
+        self.id = stableUUID(from: emoji)
         self.emoji = emoji
         self.colorHex = color.toHex() ?? "#0000FF"
         self.opacity = opacity

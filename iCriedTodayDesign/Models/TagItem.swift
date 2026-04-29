@@ -9,8 +9,7 @@ final class TagItem {
     @Relationship(deleteRule: .nullify, inverse: \TearEntry.tagId) var entries: [TearEntry]? = []
     
     init(name: String, order: Int = 0) {
-        let nameData = name.lowercased().data(using: .utf8)!
-        self.id = UUID(uuidString: nameData.base64EncodedString()) ?? UUID()
+        self.id = stableUUID(from: name.lowercased())
         self.name = name
         self.order = order
     }
