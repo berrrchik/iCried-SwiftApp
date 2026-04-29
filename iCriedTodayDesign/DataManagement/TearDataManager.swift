@@ -116,12 +116,13 @@ class TearDataManager: DataManagerProtocol {
             tags: tagRepository.tags,
             emojiIntensities: emojiRepository.emojiIntensities
         )
+        refreshTrigger = UUID()
         debugLog("Анализатор данных обновлён")
     }
     
     var availableYears: [Int] { dataAnalyzer.availableYears }
     
-    var groupedEntries: [(month: String, records: [TearEntry])] {
+    var groupedEntries: [DiarySection] {
         let result = dataAnalyzer.groupedEntries
         debugLog("Количество записей в groupedEntries: \(result.reduce(0) { $0 + $1.records.count })")
         return result
@@ -141,6 +142,18 @@ class TearDataManager: DataManagerProtocol {
     }
     func monthlyDataByIntensity(for year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [(date: Date, intensityCounts: [Int])] {
         dataAnalyzer.monthlyDataByIntensity(for: year, emoji: emoji, tags: tags)
+    }
+    func statisticsSnapshot(for filter: StatisticsFilter) -> StatisticsSnapshot {
+        dataAnalyzer.statisticsSnapshot(filter: filter)
+    }
+    func selectedMonthMatches(_ date: Date, selectedMonth: Date?) -> Bool {
+        dataAnalyzer.selectedMonthMatches(date, selectedMonth: selectedMonth)
+    }
+    func toggledMonthSelection(current: Date?, tappedDate: Date) -> Date? {
+        dataAnalyzer.toggledMonthSelection(current: current, tappedDate: tappedDate)
+    }
+    func cryingMomentsLabel(for count: Int) -> String {
+        dataAnalyzer.cryingMomentsLabel(for: count)
     }
     
     // MARK: - Refresh and Migration Cleanup
@@ -170,7 +183,6 @@ class TearDataManager: DataManagerProtocol {
     private func reloadFromStore(reason: String) {
         reloadRepositories()
         updateAnalyzer()
-        refreshTrigger = UUID()
         debugLog("Данные обновлены из локального store: \(reason)")
     }
     

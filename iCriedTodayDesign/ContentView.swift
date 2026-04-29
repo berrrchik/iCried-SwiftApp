@@ -52,7 +52,6 @@ struct ContentView: View {
 
 struct TearLogView: View {
     @Bindable var dataManager: TearDataManager
-    @Query(sort: \TearEntry.date, order: .reverse) private var entries: [TearEntry]
     @State private var showingAddTear = false
     @State private var showingDeleteAlert = false
     @State private var entryToDelete: TearEntry?
@@ -61,7 +60,7 @@ struct TearLogView: View {
         VStack(spacing: -5) {
             headerView
             
-            if entries.isEmpty {
+            if dataManager.entries.isEmpty {
                 EmptyStateView(
                     title: "Начните свой путь",
                     subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
@@ -77,7 +76,8 @@ struct TearLogView: View {
                     }
             }
         }
-        .animation(.easeInOut(duration: 0.3), value: entries.isEmpty)
+        .id(dataManager.refreshTrigger)
+        .animation(.easeInOut(duration: 0.3), value: dataManager.entries.isEmpty)
         .sheet(isPresented: $showingAddTear) {
             AddTearView(dataManager: dataManager)
         }
@@ -115,29 +115,15 @@ struct TearLogView: View {
     
     private var entriesList: some View {
         List {
-            ForEach(groupedEntries, id: \.month) { section in
+            ForEach(dataManager.groupedEntries) { section in
                 entriesSection(for: section)
             }
         }
         .listStyle(InsetGroupedListStyle())
-        .id(dataManager.refreshTrigger)
     }
     
-    private var groupedEntries: [(month: String, records: [TearEntry])] {
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale(identifier: "ru_RU")
-        dateFormatter.dateFormat = "LLLL yyyy"
-        
-        let grouped = Dictionary(grouping: entries) { entry in
-            dateFormatter.string(from: entry.date)
-        }
-        
-        return grouped.map { (month: $0.key, records: $0.value.sorted { $0.date > $1.date }) }
-            .sorted { $0.records.first?.date ?? Date() > $1.records.first?.date ?? Date() }
-    }
-    
-    private func entriesSection(for section: (month: String, records: [TearEntry])) -> some View {
-        Section(header: Text(section.month)
+    private func entriesSection(for section: DiarySection) -> some View {
+        Section(header: Text(section.monthTitle)
             .font(.headline)
             .foregroundColor(.gray)) {
                 ForEach(section.records) { entry in

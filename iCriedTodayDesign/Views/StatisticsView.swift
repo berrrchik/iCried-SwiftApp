@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 import Charts
 
 struct StatisticsView: View {
@@ -31,11 +30,11 @@ struct StatisticsView: View {
                         tagsList
                     }
                     
-                    ForEach(groupedEntriesForYear, id: \.month) { section in
-                        Section(header: Text(section.month)
+                    ForEach(statisticsSnapshot.diarySections) { section in
+                        Section(header: Text(section.monthTitle)
                             .font(.headline)
                             .foregroundColor(.gray)) {
-                                ForEach(section.records.sorted(by: { $0.date > $1.date })) { entry in
+                                ForEach(section.records) { entry in
                                     TearCard(entry: entry, dataManager: dataManager)
                                         .swipeActions(allowsFullSwipe: false) {
                                             Button() {
@@ -52,6 +51,7 @@ struct StatisticsView: View {
                 }
                 .listStyle(InsetGroupedListStyle())
                 .background(Color(.systemGroupedBackground))
+                .id(dataManager.refreshTrigger)
             }
         }
         .navigationTitle("Статистика")
@@ -73,7 +73,7 @@ struct StatisticsView: View {
     
     private var yearHeader: some View {
         HStack {
-            Text("\(filteredEntriesCount) \(formatCryingMoments(count: filteredEntriesCount))")
+            Text("\(statisticsSnapshot.filteredEntriesCount) \(dataManager.cryingMomentsLabel(for: statisticsSnapshot.filteredEntriesCount))")
                 .font(.title2.bold())
             
             Spacer()
@@ -96,13 +96,7 @@ struct StatisticsView: View {
     private var monthlyChartInteractive: some View {
         VStack(alignment: .leading, spacing: 10) {
             Chart {
-                let monthlyData = dataManager.monthlyDataByIntensity(
-                    for: selectedYear,
-                    emoji: nil,
-                    tags: selectedTags.isEmpty ? nil : Array(selectedTags)
-                )
-                
-                ForEach(monthlyData, id: \.date) { item in
+                ForEach(statisticsSnapshot.monthPoints) { item in
                     let reversedIntensityCounts = Array(item.intensityCounts.reversed())
                     ForEach(Array(dataManager.emojiIntensities.reversed().enumerated()), id: \.element.id) { index, emojiIntensity in
                         if index < reversedIntensityCounts.count {
@@ -110,13 +104,13 @@ struct StatisticsView: View {
                             let endValue = startValue + reversedIntensityCounts[index]
                             
                             BarMark(
-                                x: .value("Месяц", item.date, unit: .month),
+                                x: .value("Месяц", item.monthStart, unit: .month),
                                 yStart: .value("Начало", startValue),
                                 yEnd: .value("Конец", endValue),
                                 width: .ratio(0.65)
                             )
                             .foregroundStyle(emojiIntensity.color)
-                            .opacity(getOpacity(for: item.date, emoji: emojiIntensity))
+                            .opacity(getOpacity(for: item.monthStart, emoji: emojiIntensity))
                         }
                     }
                 }
@@ -146,28 +140,24 @@ struct StatisticsView: View {
     }
     
     private var emojiStats: some View {
-        let stats = dataManager.emojiStatistics(
-            for: selectedYear,
-            tags: selectedTags.isEmpty ? nil : Array(selectedTags))
-        
-        return ScrollView(.horizontal, showsIndicators: false) {
+        ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
-                ForEach(0..<min(stats.count, dataManager.emojiIntensities.count), id: \.self) { index in
-                    let stat = stats[index]
-                    let emojiIntensity = dataManager.emojiIntensities[index]
-                    EmojiButton(
-                        emoji: stat.emoji,
-                        count: stat.count,
-                        color: emojiIntensity.color,
-                        isSelected: selectedEmoji?.id == emojiIntensity.id,
-                        action: {
-                            withAnimation {
-                                selectedEmoji = (selectedEmoji?.id == emojiIntensity.id) ? nil : emojiIntensity
-                            }
-                        },
-                        isCountVisible: true,
-                        fontSize: 28
-                    )
+                ForEach(statisticsSnapshot.emojiItems) { stat in
+                    if let emojiIntensity = dataManager.emojiIntensities.first(where: { $0.id == stat.emojiID }) {
+                        EmojiButton(
+                            emoji: stat.emoji,
+                            count: stat.count,
+                            color: emojiIntensity.color,
+                            isSelected: selectedEmoji?.id == emojiIntensity.id,
+                            action: {
+                                withAnimation {
+                                    selectedEmoji = (selectedEmoji?.id == emojiIntensity.id) ? nil : emojiIntensity
+                                }
+                            },
+                            isCountVisible: true,
+                            fontSize: 28
+                        )
+                    }
                 }
             }
         }
@@ -175,14 +165,12 @@ struct StatisticsView: View {
     }
     
     private var tagsList: some View {
-        let filteredTags = dataManager.tagStatistics(for: selectedYear).filter { $0.count > 0 }
-        
-        return ScrollView(.horizontal, showsIndicators: false) {
+        ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
-                ForEach(filteredTags, id: \.tag) { stat in
-                    if let tag = dataManager.tags.first(where: { $0.name == stat.tag }) {
+                ForEach(statisticsSnapshot.tagItems.filter { $0.count > 0 }) { stat in
+                    if let tag = dataManager.tags.first(where: { $0.id == stat.tagID }) {
                         TagButton(
-                            tagName: stat.tag,
+                            tagName: stat.name,
                             isSelected: selectedTags.contains { $0.id == tag.id },
                             action: {
                                 withAnimation {
@@ -204,7 +192,7 @@ struct StatisticsView: View {
     private func getOpacity(for date: Date, emoji: EmojiIntensity) -> Double {
         if selectedMonth == nil && selectedEmoji == nil { return 1.0 }
         
-        let monthMatch = selectedMonth == nil || selectedMonthMatches(date)
+        let monthMatch = selectedMonth == nil || dataManager.selectedMonthMatches(date, selectedMonth: selectedMonth)
         let emojiMatch = selectedEmoji == nil || selectedEmoji?.id == emoji.id
         
         return (monthMatch && emojiMatch) ? 1.0 : 0.3
@@ -214,12 +202,7 @@ struct StatisticsView: View {
         let xPosition = tapLocation.x - geometry[proxy.plotAreaFrame].origin.x
         guard let tappedDate: Date = proxy.value(atX: xPosition) else { return }
         
-        selectedMonth = selectedMonthMatches(tappedDate) ? nil : tappedDate
-    }
-    
-    private func selectedMonthMatches(_ date: Date) -> Bool {
-        guard let selectedMonth else { return false }
-        return Calendar.current.isDate(selectedMonth, equalTo: date, toGranularity: .month)
+        selectedMonth = dataManager.toggledMonthSelection(current: selectedMonth, tappedDate: tappedDate)
     }
     
     private func changeYear(by value: Int) {
@@ -232,58 +215,15 @@ struct StatisticsView: View {
         }
     }
     
-    private var groupedEntriesForYear: [(month: String, records: [TearEntry])] {
-        var entries = dataManager.entriesForYear(
-            selectedYear,
-            emoji: selectedEmoji,
-            tags: selectedTags.isEmpty ? nil : Array(selectedTags))
-        
-        if let selectedMonth = selectedMonth {
-            entries = entries.filter {
-                Calendar.current.isDate($0.date, equalTo: selectedMonth, toGranularity: .month)
-            }
-        }
-        
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "LLLL yyyy"
-        
-        let grouped = Dictionary(grouping: entries) { entry in
-            formatter.string(from: entry.date)
-        }
-        
-        return grouped.sorted { $0.key < $1.key }
-            .map { (month: $0.key.uppercased(), records: $0.value) }
-    }
-    
-    private var filteredEntriesCount: Int {
-        let entries = dataManager.entriesForYear(
-            selectedYear,
-            emoji: selectedEmoji,
-            tags: selectedTags.isEmpty ? nil : Array(selectedTags))
-        
-        if let selectedMonth = selectedMonth {
-            return entries.filter {
-                Calendar.current.isDate($0.date, equalTo: selectedMonth, toGranularity: .month)
-            }.count
-        }
-        
-        return entries.count
-    }
-    
-    func formatCryingMoments(count: Int) -> String {
-        let lastDigit = count % 10
-        let lastTwoDigits = count % 100
-        
-        if lastTwoDigits >= 11 && lastTwoDigits <= 19 {
-            return "Моментов грусти"
-        } else if lastDigit == 1 {
-            return "Момент грусти"
-        } else if lastDigit >= 2 && lastDigit <= 4 {
-            return "Момента грусти"
-        } else {
-            return "Моментов грусти"
-        }
+    private var statisticsSnapshot: StatisticsSnapshot {
+        dataManager.statisticsSnapshot(
+            for: StatisticsFilter(
+                year: selectedYear,
+                selectedMonth: selectedMonth,
+                selectedEmojiID: selectedEmoji?.id,
+                selectedTagIDs: Set(selectedTags.map(\.id))
+            )
+        )
     }
 }
 

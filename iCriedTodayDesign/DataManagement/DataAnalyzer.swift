@@ -5,6 +5,7 @@ class DataAnalyzer {
     private let entries: [TearEntry]
     private let tags: [TagItem]
     private let emojiIntensities: [EmojiIntensity]
+    private let entryGrouper = EntryGrouper()
     
     init(entries: [TearEntry], tags: [TagItem], emojiIntensities: [EmojiIntensity]) {
         self.entries = entries
@@ -13,19 +14,11 @@ class DataAnalyzer {
     }
     
     var availableYears: [Int] {
-        Set(entries.map { Calendar.current.component(.year, from: $0.date) }).sorted()
+        statisticsEngine.availableYears
     }
     
-    var groupedEntries: [(month: String, records: [TearEntry])] {
-        let calendar = Calendar.current
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "ru_RU")
-        formatter.dateFormat = "LLLL yyyy"
-        
-        let grouped = Dictionary(grouping: entries) { calendar.dateComponents([.year, .month], from: $0.date) }
-        return grouped
-            .sorted { $0.key.year! > $1.key.year! || ($0.key.year! == $1.key.year! && $0.key.month! > $1.key.month!) }
-            .map { (formatter.string(from: calendar.date(from: $0.key)!).uppercased(), $0.value.sorted(by: { $0.date > $1.date })) }
+    var groupedEntries: [DiarySection] {
+        statisticsEngine.diarySections()
     }
     
     func getTag(for entry: TearEntry) -> TagItem? {
@@ -33,16 +26,12 @@ class DataAnalyzer {
     }
     
     func entriesForYear(_ year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [TearEntry] {
-        let calendar = Calendar.current
-        return entries.filter { entry in
-            calendar.component(.year, from: entry.date) == year &&
-            (emoji == nil || entry.emojiId?.id == emoji?.id) &&
-            (tags == nil || (entry.tagId != nil && tags!.contains { tag in tag.id == entry.tagId!.id }))
-        }
+        let selectedTagIDs = Set(tags?.map(\.id) ?? [])
+        return statisticsEngine.entriesForYear(year, emojiID: emoji?.id, tagIDs: selectedTagIDs)
     }
     
     func totalEntriesForYear(_ year: Int) -> Int {
-        entriesForYear(year).count
+        statisticsEngine.totalEntriesForYear(year)
     }
     
     func getEmoji(for entry: TearEntry) -> EmojiIntensity {
@@ -50,29 +39,64 @@ class DataAnalyzer {
     }
     
     func emojiStatistics(for year: Int, tags: [TagItem]? = nil) -> [(emoji: String, count: Int)] {
-        let yearEntries = entriesForYear(year, tags: tags)
-        var counts: [UUID: Int] = [:]
-        yearEntries.forEach { counts[$0.emojiId?.id ?? UUID(), default: 0] += 1 }
-        return emojiIntensities.map { ($0.emoji, counts[$0.id] ?? 0) }
+        let selectedTagIDs = Set(tags?.map(\.id) ?? [])
+        return statisticsEngine
+            .emojiStatistics(for: year, tagIDs: selectedTagIDs)
+            .map { ($0.emoji, $0.count) }
     }
     
     func tagStatistics(for year: Int, tags: [TagItem]? = nil) -> [(tag: String, count: Int)] {
-        let yearEntries = entriesForYear(year, tags: tags)
-        var counts: [UUID: Int] = [:]
-        yearEntries.compactMap { $0.tagId?.id }.forEach { counts[$0, default: 0] += 1 }
-        return (tags ?? self.tags).map { ($0.name, counts[$0.id] ?? 0) }
+        let selectedTags = tags ?? self.tags
+        let countsByTag = Dictionary(
+            statisticsEngine.tagStatistics(for: year).map { ($0.tagID, $0.count) },
+            uniquingKeysWith: { first, _ in first }
+        )
+        
+        return selectedTags.map { ($0.name, countsByTag[$0.id] ?? 0) }
     }
     
     func monthlyDataByIntensity(for year: Int, emoji: EmojiIntensity? = nil, tags: [TagItem]? = nil) -> [(date: Date, intensityCounts: [Int])] {
-        let calendar = Calendar.current
-        let yearEntries = entriesForYear(year, emoji: emoji, tags: tags)
+        let selectedTagIDs = Set(tags?.map(\.id) ?? [])
+        var points = statisticsEngine.monthlyPoints(for: year, tagIDs: selectedTagIDs)
         
-        return (1...12).map { month in
-            let date = calendar.date(from: DateComponents(year: year, month: month, day: 1)) ?? Date()
-            let monthEntries = yearEntries.filter { calendar.component(.month, from: $0.date) == month }
-            var counts: [UUID: Int] = [:]
-            monthEntries.forEach { counts[$0.emojiId?.id ?? UUID(), default: 0] += 1 }
-            return (date, emojiIntensities.map { counts[$0.id] ?? 0 })
+        if let emoji {
+            guard let emojiIndex = emojiIntensities.firstIndex(where: { $0.id == emoji.id }) else {
+                return points.map { ($0.monthStart, Array(repeating: 0, count: $0.intensityCounts.count)) }
+            }
+            
+            points = points.map { point in
+                let filteredCounts = point.intensityCounts.enumerated().map { index, count in
+                    index == emojiIndex ? count : 0
+                }
+                return StatisticsMonthPoint(monthStart: point.monthStart, intensityCounts: filteredCounts)
+            }
         }
+        
+        return points.map { ($0.monthStart, $0.intensityCounts) }
+    }
+    
+    func statisticsSnapshot(filter: StatisticsFilter) -> StatisticsSnapshot {
+        statisticsEngine.snapshot(filter: filter)
+    }
+    
+    func selectedMonthMatches(_ date: Date, selectedMonth: Date?) -> Bool {
+        statisticsEngine.matchesMonth(date, selectedMonth: selectedMonth)
+    }
+    
+    func toggledMonthSelection(current: Date?, tappedDate: Date) -> Date? {
+        statisticsEngine.toggledMonthSelection(current: current, tappedDate: tappedDate)
+    }
+    
+    func cryingMomentsLabel(for count: Int) -> String {
+        CryingMomentsPluralizer.label(for: count)
+    }
+    
+    private var statisticsEngine: StatisticsEngine {
+        StatisticsEngine(
+            entries: entries,
+            tags: tags,
+            emojiIntensities: emojiIntensities,
+            entryGrouper: entryGrouper
+        )
     }
 }

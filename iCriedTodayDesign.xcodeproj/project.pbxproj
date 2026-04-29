@@ -28,6 +28,10 @@
 		58A100032E1700010097709F /* TagRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101032E1700010097709F /* TagRepository.swift */; };
 		58A100042E1700010097709F /* EmojiRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101042E1700010097709F /* EmojiRepository.swift */; };
 		58A100052E1700010097709F /* InitialDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101052E1700010097709F /* InitialDataSeeder.swift */; };
+		58A100062E1800010097709F /* AnalyticsModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101062E1800010097709F /* AnalyticsModels.swift */; };
+		58A100072E1800010097709F /* EntryGrouper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101072E1800010097709F /* EntryGrouper.swift */; };
+		58A100082E1800010097709F /* StatisticsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101082E1800010097709F /* StatisticsEngine.swift */; };
+		58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101092E1800010097709F /* CryingMomentsPluralizer.swift */; };
 		577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */; };
 		577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */; };
 		5810A1B72E16A0320097709F /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5810A1B62E16A0320097709F /* DebugLog.swift */; };
@@ -87,6 +91,10 @@
 		58A101032E1700010097709F /* TagRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagRepository.swift; sourceTree = "<group>"; };
 		58A101042E1700010097709F /* EmojiRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiRepository.swift; sourceTree = "<group>"; };
 		58A101052E1700010097709F /* InitialDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialDataSeeder.swift; sourceTree = "<group>"; };
+		58A101062E1800010097709F /* AnalyticsModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsModels.swift; sourceTree = "<group>"; };
+		58A101072E1800010097709F /* EntryGrouper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryGrouper.swift; sourceTree = "<group>"; };
+		58A101082E1800010097709F /* StatisticsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsEngine.swift; sourceTree = "<group>"; };
+		58A101092E1800010097709F /* CryingMomentsPluralizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryingMomentsPluralizer.swift; sourceTree = "<group>"; };
 		577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataAnalyzer.swift; sourceTree = "<group>"; };
 		577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManagerProtocol.swift; sourceTree = "<group>"; };
 		5810A1B62E16A0320097709F /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
@@ -136,9 +144,21 @@
 		58A102012E1700010097709F /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				58A102032E1800010097709F /* Analytics */,
 				58A102022E1700010097709F /* Contracts */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		58A102032E1800010097709F /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				58A101062E1800010097709F /* AnalyticsModels.swift */,
+				58A101072E1800010097709F /* EntryGrouper.swift */,
+				58A101082E1800010097709F /* StatisticsEngine.swift */,
+				58A101092E1800010097709F /* CryingMomentsPluralizer.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		58A102022E1700010097709F /* Contracts */ = {
@@ -432,7 +452,10 @@
 				571049112D874CC0002AA105 /* AddTagView.swift in Sources */,
 				57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */,
 				5739682A2D70C03500679200 /* AddTearView.swift in Sources */,
+				58A100062E1800010097709F /* AnalyticsModels.swift in Sources */,
+				58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */,
 				577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */,
+				58A100072E1800010097709F /* EntryGrouper.swift in Sources */,
 				5810A1B52E16A0010097709F /* TearCard.swift in Sources */,
 				57DE81972D66651A0097709F /* StatisticsView.swift in Sources */,
 				5739683A2D749EF100679200 /* EditEmojiView.swift in Sources */,
@@ -442,6 +465,7 @@
 				57DE819C2D66651A0097709F /* TearEntry.swift in Sources */,
 				577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */,
 				58A100012E1700010097709F /* RepositoryProtocols.swift in Sources */,
+				58A100082E1800010097709F /* StatisticsEngine.swift in Sources */,
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
