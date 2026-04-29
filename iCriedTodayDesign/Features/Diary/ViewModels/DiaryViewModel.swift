@@ -4,19 +4,29 @@ import Combine
 @MainActor
 final class DiaryViewModel: ObservableObject {
     @Published private(set) var sections: [DiarySection] = []
+    @Published private(set) var isEmpty = true
     @Published var showingAddTear = false
     @Published var showingDeleteAlert = false
     @Published private(set) var entryToDelete: TearEntry?
     
-    private let dataManager: TearDataManager
+    private let dataManager: any DiaryDataManaging
     
-    init(dataManager: TearDataManager) {
+    init(dataManager: any DiaryDataManaging) {
         self.dataManager = dataManager
         syncFromDataManager()
     }
     
+    var availableTags: [TagItem] {
+        dataManager.tags
+    }
+    
+    var availableEmojiIntensities: [EmojiIntensity] {
+        dataManager.emojiIntensities
+    }
+    
     func syncFromDataManager() {
         sections = dataManager.groupedEntries
+        isEmpty = dataManager.entries.isEmpty
     }
     
     func presentDelete(for entry: TearEntry) {
@@ -38,6 +48,11 @@ final class DiaryViewModel: ObservableObject {
     
     func refresh() async {
         await dataManager.refreshData()
+        syncFromDataManager()
+    }
+    
+    func addEntry(_ entry: TearEntry) {
+        dataManager.addEntry(entry)
         syncFromDataManager()
     }
 }

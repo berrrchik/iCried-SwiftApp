@@ -18,6 +18,7 @@ final class StatisticsViewModel: ObservableObject {
     @Published var showingAddTear = false
     @Published var showingDeleteAlert = false
     @Published private(set) var entryToDelete: TearEntry?
+    @Published private(set) var isEmpty = true
     @Published private(set) var snapshot = StatisticsSnapshot(
         filteredEntriesCount: 0,
         diarySections: [],
@@ -26,12 +27,20 @@ final class StatisticsViewModel: ObservableObject {
         tagItems: []
     )
     
-    private let dataManager: TearDataManager
+    private let dataManager: any StatisticsDataManaging
     
-    init(dataManager: TearDataManager) {
+    init(dataManager: any StatisticsDataManaging) {
         self.dataManager = dataManager
         self.selectedYear = dataManager.availableYears.last ?? Calendar.current.component(.year, from: Date())
         recomputeSnapshot()
+    }
+    
+    var availableTags: [TagItem] {
+        dataManager.tags
+    }
+    
+    var availableEmojiIntensities: [EmojiIntensity] {
+        dataManager.emojiIntensities
     }
     
     var availableYears: [Int] {
@@ -39,6 +48,7 @@ final class StatisticsViewModel: ObservableObject {
     }
     
     func syncFromDataManager() {
+        isEmpty = dataManager.entries.isEmpty
         if !availableYears.contains(selectedYear), let lastYear = availableYears.last {
             selectedYear = lastYear
             return
@@ -105,7 +115,13 @@ final class StatisticsViewModel: ObservableObject {
         dataManager.cryingMomentsLabel(for: snapshot.filteredEntriesCount)
     }
     
+    func addEntry(_ entry: TearEntry) {
+        dataManager.addEntry(entry)
+        syncFromDataManager()
+    }
+    
     private func recomputeSnapshot(resetMonthIfNeeded: Bool = false) {
+        isEmpty = dataManager.entries.isEmpty
         if resetMonthIfNeeded {
             selectedMonth = nil
         }

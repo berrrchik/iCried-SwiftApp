@@ -10,9 +10,9 @@ final class TagManagementViewModel: ObservableObject {
     @Published private(set) var tagToDelete: TagItem?
     @Published var showingDeleteAlert = false
     
-    private let dataManager: TearDataManager
+    private let dataManager: any TagDataManaging
     
-    init(dataManager: TearDataManager) {
+    init(dataManager: any TagDataManaging) {
         self.dataManager = dataManager
         syncFromDataManager()
     }
@@ -61,6 +61,16 @@ final class TagManagementViewModel: ObservableObject {
     
     func moveTags(from source: IndexSet, to destination: Int) {
         dataManager.moveTag(from: source, to: destination)
+        syncFromDataManager()
+    }
+    
+    func addTag(_ name: String) {
+        dataManager.addTag(name)
+        syncFromDataManager()
+    }
+    
+    func saveTag(id: UUID, name: String) {
+        dataManager.updateTag(withId: id, newName: name)
         syncFromDataManager()
     }
 }

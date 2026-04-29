@@ -10,9 +10,9 @@ final class EmojiManagementViewModel: ObservableObject {
     @Published private(set) var emojiToDeleteIndex: Int?
     @Published var showingDeleteAlert = false
     
-    private let dataManager: TearDataManager
+    private let dataManager: any EmojiDataManaging
     
-    init(dataManager: TearDataManager) {
+    init(dataManager: any EmojiDataManaging) {
         self.dataManager = dataManager
         syncFromDataManager()
     }
@@ -60,6 +60,16 @@ final class EmojiManagementViewModel: ObservableObject {
     
     func moveEmojis(from source: IndexSet, to destination: Int) {
         dataManager.moveEmojiIntensity(from: source, to: destination)
+        syncFromDataManager()
+    }
+    
+    func addEmoji(_ emoji: EmojiIntensity) {
+        dataManager.addEmojiIntensity(emoji)
+        syncFromDataManager()
+    }
+    
+    func saveEmoji(_ updatedEmoji: EmojiIntensity, at index: Int) {
+        dataManager.updateEmojiIntensity(updatedEmoji, at: index)
         syncFromDataManager()
     }
 }

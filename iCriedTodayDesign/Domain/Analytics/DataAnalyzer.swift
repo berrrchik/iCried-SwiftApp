@@ -1,7 +1,6 @@
 import Foundation
 
-@Observable
-class DataAnalyzer {
+final class DataAnalyzer {
     private let entries: [TearEntry]
     private let tags: [TagItem]
     private let emojiIntensities: [EmojiIntensity]
