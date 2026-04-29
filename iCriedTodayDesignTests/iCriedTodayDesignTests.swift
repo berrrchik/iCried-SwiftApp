@@ -119,6 +119,117 @@ final class iCriedTodayDesignTests: XCTestCase {
         XCTAssertEqual(filtered.first?.id, matchingEntry.id)
     }
     
+    func testDiarySectionsUseUppercasedRussianMonthTitles() {
+        let calendar = Calendar(identifier: .gregorian)
+        let sadness = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 0)
+        let tag = TagItem(name: "#Работа")
+        let entry = TearEntry(
+            date: calendar.date(from: DateComponents(year: 2025, month: 3, day: 14))!,
+            emojiId: sadness,
+            tagId: tag,
+            note: "March"
+        )
+        
+        let analyzer = DataAnalyzer(
+            entries: [entry],
+            tags: [tag],
+            emojiIntensities: [sadness]
+        )
+        
+        XCTAssertEqual(analyzer.groupedEntries.first?.monthTitle, "МАРТ 2025")
+    }
+    
+    func testStatisticsEngineTogglesSelectedMonthOffWhenTappedAgain() {
+        let engine = StatisticsEngine(entries: [], tags: [], emojiIntensities: [])
+        let calendar = Calendar(identifier: .gregorian)
+        let tappedMonth = calendar.date(from: DateComponents(year: 2025, month: 4, day: 1))!
+        
+        let selectedMonth = engine.toggledMonthSelection(current: nil, tappedDate: tappedMonth)
+        let deselectedMonth = engine.toggledMonthSelection(current: selectedMonth, tappedDate: tappedMonth)
+        
+        XCTAssertEqual(selectedMonth, tappedMonth)
+        XCTAssertNil(deselectedMonth)
+    }
+    
+    func testStatisticsSnapshotAppliesMonthAndEmojiFiltersToDiaryResults() {
+        let calendar = Calendar(identifier: .gregorian)
+        let lightSadness = EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 0)
+        let deepSadness = EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 1)
+        let tag = TagItem(name: "#Работа")
+        let aprilMatch = TearEntry(
+            date: calendar.date(from: DateComponents(year: 2025, month: 4, day: 5))!,
+            emojiId: deepSadness,
+            tagId: tag,
+            note: "April match"
+        )
+        let aprilOtherEmoji = TearEntry(
+            date: calendar.date(from: DateComponents(year: 2025, month: 4, day: 6))!,
+            emojiId: lightSadness,
+            tagId: tag,
+            note: "April other emoji"
+        )
+        let mayMatch = TearEntry(
+            date: calendar.date(from: DateComponents(year: 2025, month: 5, day: 1))!,
+            emojiId: deepSadness,
+            tagId: tag,
+            note: "May match"
+        )
+        
+        let engine = StatisticsEngine(
+            entries: [aprilMatch, aprilOtherEmoji, mayMatch],
+            tags: [tag],
+            emojiIntensities: [lightSadness, deepSadness]
+        )
+        
+        let snapshot = engine.snapshot(
+            filter: StatisticsFilter(
+                year: 2025,
+                selectedMonth: calendar.date(from: DateComponents(year: 2025, month: 4, day: 1)),
+                selectedEmojiID: deepSadness.id,
+                selectedTagIDs: []
+            )
+        )
+        
+        XCTAssertEqual(snapshot.filteredEntriesCount, 1)
+        XCTAssertEqual(snapshot.diarySections.count, 1)
+        XCTAssertEqual(snapshot.diarySections.first?.records.first?.id, aprilMatch.id)
+    }
+    
+    func testStatisticsSnapshotSupportsMultipleSelectedTags() {
+        let workTag = TagItem(name: "#Работа")
+        let familyTag = TagItem(name: "#Семья")
+        let otherTag = TagItem(name: "#Учеба")
+        let sadness = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 0)
+        
+        let workEntry = makeEntry(note: "Work", emoji: sadness, tag: workTag)
+        let familyEntry = makeEntry(day: 2, note: "Family", emoji: sadness, tag: familyTag)
+        let studyEntry = makeEntry(day: 3, note: "Study", emoji: sadness, tag: otherTag)
+        
+        let engine = StatisticsEngine(
+            entries: [workEntry, familyEntry, studyEntry],
+            tags: [workTag, familyTag, otherTag],
+            emojiIntensities: [sadness]
+        )
+        
+        let filteredEntries = engine.entriesForYear(
+            2025,
+            tagIDs: Set([workTag.id, familyTag.id])
+        )
+        
+        XCTAssertEqual(filteredEntries.count, 2)
+        XCTAssertTrue(filteredEntries.contains { $0.id == workEntry.id })
+        XCTAssertTrue(filteredEntries.contains { $0.id == familyEntry.id })
+    }
+    
+    func testCryingMomentsPluralizerHandlesRussianEdgeCases() {
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 1), "Момент грусти")
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 2), "Момента грусти")
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 5), "Моментов грусти")
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 11), "Моментов грусти")
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 21), "Момент грусти")
+        XCTAssertEqual(CryingMomentsPluralizer.label(for: 24), "Момента грусти")
+    }
+    
     @MainActor
     func testRefreshDataReloadsEntriesFromStore() async throws {
         let container = try makeInMemoryContainer()
