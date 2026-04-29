@@ -3,12 +3,12 @@ import SwiftData
 
 struct TagManagementView: View {
     @Bindable var dataManager: TearDataManager
-    @State private var showingAddTagSheet = false
-    @State private var showingEditTagSheet = false
-    @State private var tagToEdit: TagItem?
-    @State private var showingAlert = false
-    @State private var tagToDelete: TagItem?
-    @State private var isEditing = false
+    @StateObject private var viewModel: TagManagementViewModel
+    
+    init(dataManager: TearDataManager) {
+        self.dataManager = dataManager
+        _viewModel = StateObject(wrappedValue: TagManagementViewModel(dataManager: dataManager))
+    }
     
     var body: some View {
         VStack {
@@ -19,59 +19,69 @@ struct TagManagementView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button(action: { showingAddTagSheet = true }) {
+                Button(action: { viewModel.showingAddTagSheet = true }) {
                     Image(systemName: "plus.circle.fill")
                         .foregroundColor(.blue)
                         .font(.title2)
                 }
             }
         }
-        .sheet(isPresented: $showingAddTagSheet) {
-            AddTagView(dataManager: dataManager, isPresented: $showingAddTagSheet)
+        .sheet(isPresented: $viewModel.showingAddTagSheet) {
+            AddTagView(dataManager: dataManager, isPresented: $viewModel.showingAddTagSheet)
         }
-        .sheet(item: $tagToEdit) { tag in
-            EditTagView(dataManager: dataManager, isPresented: $showingEditTagSheet, tag: tag)
+        .sheet(item: Binding(
+            get: { viewModel.tagToEdit },
+            set: { _ in viewModel.dismissEdit() }
+        )) { tag in
+            EditTagView(
+                dataManager: dataManager,
+                isPresented: Binding(
+                    get: { viewModel.tagToEdit != nil },
+                    set: { if !$0 { viewModel.dismissEdit() } }
+                ),
+                tag: tag
+            )
         }
-        .alert("Удалить тег?", isPresented: $showingAlert) {
+        .alert("Удалить тег?", isPresented: $viewModel.showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
-                if let tag = tagToDelete {
-                    dataManager.removeTag(tag.id)
-                }
-                tagToDelete = nil
+                viewModel.confirmDelete()
             }
         } message: {
-            if let tag = tagToDelete {
-                Text("Тег \(tag.name) будет удален из всех записей")
-            }
+            Text(viewModel.deleteMessage)
         }
         .environment(\.editMode, Binding(
-            get: { isEditing ? .active : .inactive },
+            get: { viewModel.isEditing ? .active : .inactive },
             set: { newValue in
-                isEditing = newValue == .active
+                viewModel.isEditing = newValue == .active
             }
         ))
+        .onAppear {
+            viewModel.syncFromDataManager()
+        }
+        .onChange(of: dataManager.refreshTrigger) { _ in
+            viewModel.syncFromDataManager()
+        }
     }
     
     private var existingTagsSection: some View {
         List {
             Section(header: customHeader, footer: footerView) {
-                if dataManager.tags.isEmpty {
+                if viewModel.tags.isEmpty {
                     Text("Нет добавленных тегов")
                         .foregroundColor(.gray)
                 } else {
-                    ForEach(dataManager.tags.indices, id: \.self) { index in
-                        let tag = dataManager.tags[index]
+                    ForEach(viewModel.tags.indices, id: \.self) { index in
+                        let tag = viewModel.tags[index]
                         HStack {
                             Text("\(index + 1)")
                                 .foregroundColor(.secondary)
                                 .font(.caption)
                             Text(tag.name)
                             Spacer()
-                            if !isEditing {
+                            if !viewModel.isEditing {
                                 Button {
-                                    tagToEdit = tag
-                                    showingEditTagSheet = true
+                                    viewModel.presentEdit(for: tag)
                                 } label: {
                                     Image(systemName: "pencil")
                                         .foregroundColor(.blue)
@@ -80,8 +90,7 @@ struct TagManagementView: View {
                         }
                         .swipeActions(allowsFullSwipe: false) {
                             Button(role: .destructive) {
-                                tagToDelete = tag
-                                showingAlert = true
+                                viewModel.presentDelete(for: tag)
                             } label: {
                                 Image(systemName: "trash")
                                     .foregroundColor(.red)
@@ -89,7 +98,7 @@ struct TagManagementView: View {
                         }
                     }
                     .onMove { indices, destination in
-                        dataManager.moveTag(from: indices, to: destination)
+                        viewModel.moveTags(from: indices, to: destination)
                     }
                 }
             }
@@ -99,8 +108,8 @@ struct TagManagementView: View {
     
     private var footerView: some View {
         Group {
-            if isEditing {
-                Text("Перетащите теги, чтобы изменить их порядок")
+            if let footerText = viewModel.footerText {
+                Text(footerText)
             }
         }
     }
@@ -112,9 +121,9 @@ struct TagManagementView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
             Button(action: {
-                isEditing.toggle()
+                viewModel.toggleEditing()
             }) {
-                Text(isEditing ? "Готово" : "Редактировать")
+                Text(viewModel.isEditing ? "Готово" : "Редактировать")
                     .foregroundColor(.blue)
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .trailing)

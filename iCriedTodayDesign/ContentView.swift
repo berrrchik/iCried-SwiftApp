@@ -52,9 +52,12 @@ struct ContentView: View {
 
 struct TearLogView: View {
     @Bindable var dataManager: TearDataManager
-    @State private var showingAddTear = false
-    @State private var showingDeleteAlert = false
-    @State private var entryToDelete: TearEntry?
+    @StateObject private var viewModel: DiaryViewModel
+    
+    init(dataManager: TearDataManager) {
+        self.dataManager = dataManager
+        _viewModel = StateObject(wrappedValue: DiaryViewModel(dataManager: dataManager))
+    }
     
     var body: some View {
         VStack(spacing: -5) {
@@ -66,33 +69,36 @@ struct TearLogView: View {
                     subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
                     icon: "drop.fill",
                     buttonTitle: "Добавить запись",
-                    action: { showingAddTear = true }
+                    action: { viewModel.showingAddTear = true }
                 )
                 .transition(.opacity)
             } else {
                 entriesList
                     .refreshable {
-                        await dataManager.refreshData()
+                        await viewModel.refresh()
                     }
             }
         }
         .id(dataManager.refreshTrigger)
         .animation(.easeInOut(duration: 0.3), value: dataManager.entries.isEmpty)
-        .sheet(isPresented: $showingAddTear) {
+        .sheet(isPresented: $viewModel.showingAddTear) {
             AddTearView(dataManager: dataManager)
         }
-        .alert("Удалить запись?", isPresented: $showingDeleteAlert) {
+        .alert("Удалить запись?", isPresented: $viewModel.showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
-                if let entry = entryToDelete {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        dataManager.deleteEntry(entry)
-                    }
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    viewModel.confirmDelete()
                 }
-                entryToDelete = nil
             }
         } message: {
             Text("Это действие нельзя отменить")
+        }
+        .onAppear {
+            viewModel.syncFromDataManager()
+        }
+        .onChange(of: dataManager.refreshTrigger) { _ in
+            viewModel.syncFromDataManager()
         }
     }
     
@@ -102,7 +108,7 @@ struct TearLogView: View {
                 .font(.title)
                 .fontWeight(.bold)
             Spacer()
-            Button(action: { showingAddTear = true }) {
+            Button(action: { viewModel.showingAddTear = true }) {
                 Image(systemName: "plus")
                     .font(.title2)
                     .foregroundColor(.white)
@@ -115,7 +121,7 @@ struct TearLogView: View {
     
     private var entriesList: some View {
         List {
-            ForEach(dataManager.groupedEntries) { section in
+            ForEach(viewModel.sections) { section in
                 entriesSection(for: section)
             }
         }
@@ -139,8 +145,7 @@ struct TearLogView: View {
             .id(entry.id)
             .swipeActions(allowsFullSwipe: false) {
                 Button() {
-                    entryToDelete = entry
-                    showingDeleteAlert = true
+                    viewModel.presentDelete(for: entry)
                 } label: {
                     Label("Удалить", systemImage: "trash")
                 }

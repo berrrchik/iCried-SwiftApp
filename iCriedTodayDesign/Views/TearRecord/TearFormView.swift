@@ -3,20 +3,10 @@ import SwiftData
 
 struct TearFormView: View {
     @Environment(\.dismiss) var dismiss
-    @Bindable var dataManager: TearDataManager
-    
-    @State var selectedDate: Date
-    @State var selectedEmoji: EmojiIntensity?
-    @State var selectedTag: TagItem?
-    @State var note: String
+    @StateObject private var viewModel: TearFormViewModel
     
     let title: String
     let onSave: (Date, EmojiIntensity?, TagItem?, String) -> Void
-    
-    var isFormValid: Bool {
-        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !trimmedNote.isEmpty && selectedTag != nil
-    }
     
     init(dataManager: TearDataManager,
          selectedDate: Date = Date(),
@@ -24,18 +14,23 @@ struct TearFormView: View {
          selectedTag: TagItem? = nil,
          note: String = "",
          title: String,
-         onSave: @escaping (Date, EmojiIntensity?, TagItem?, String) -> Void) {
-        self.dataManager = dataManager
-        self._selectedDate = State(initialValue: selectedDate)
-        self._selectedEmoji = State(initialValue: selectedEmoji ?? dataManager.emojiIntensities.first!)
-        self._selectedTag = State(initialValue: selectedTag)
-        self._note = State(initialValue: note)
+        onSave: @escaping (Date, EmojiIntensity?, TagItem?, String) -> Void) {
+        _viewModel = StateObject(
+            wrappedValue: TearFormViewModel(
+                availableTags: dataManager.tags,
+                availableEmojiIntensities: dataManager.emojiIntensities,
+                selectedDate: selectedDate,
+                selectedEmoji: selectedEmoji,
+                selectedTag: selectedTag,
+                note: note
+            )
+        )
         self.title = title
         self.onSave = onSave
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 25) {
                     noteSection
@@ -54,12 +49,12 @@ struct TearFormView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Сохранить") {
-                        let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
-                        onSave(selectedDate, selectedEmoji, selectedTag, trimmedNote)
+                        guard let savePayload = viewModel.savePayload else { return }
+                        onSave(savePayload.date, savePayload.selectedEmoji, savePayload.selectedTag, savePayload.note)
                         dismiss()
                     }
                     .fontWeight(.bold)
-                    .disabled(!isFormValid)
+                    .disabled(!viewModel.isFormValid)
                 }
             }
         }
@@ -70,7 +65,7 @@ struct TearFormView: View {
             Text("Что случилось?")
                 .font(.headline)
             
-            TextEditor(text: $note)
+            TextEditor(text: $viewModel.note)
                 .frame(height: 100)
                 .padding()
                 .background(
@@ -87,12 +82,12 @@ struct TearFormView: View {
                 .font(.headline)
             
             FlowLayout(spacing: 12) {
-                ForEach(dataManager.tags) { tag in
+                ForEach(viewModel.availableTags) { tag in
                     TagButton(
                         tagName: tag.name,
-                        isSelected: selectedTag?.id == tag.id,
+                        isSelected: viewModel.selectedTag?.id == tag.id,
                         action: {
-                            selectedTag = tag
+                            viewModel.selectedTag = tag
                         }
                     )
                 }
@@ -105,24 +100,31 @@ struct TearFormView: View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Насколько сильно?")
                 .font(.headline)
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 15) {
-                    ForEach(dataManager.emojiIntensities) { emojiIntensity in
-                        EmojiButton(
-                            emoji: emojiIntensity.emoji,
-                            count: nil,
-                            color: emojiIntensity.color,
-                            isSelected: selectedEmoji?.id == emojiIntensity.id,
-                            action: {
-                                selectedEmoji = emojiIntensity
-                            },
-                            isCountVisible: false,
-                            fontSize: 40
-                        )
+            
+            if let missingEmojiMessage = viewModel.missingEmojiMessage {
+                Text(missingEmojiMessage)
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 15) {
+                        ForEach(viewModel.availableEmojiIntensities) { emojiIntensity in
+                            EmojiButton(
+                                emoji: emojiIntensity.emoji,
+                                count: nil,
+                                color: emojiIntensity.color,
+                                isSelected: viewModel.selectedEmoji?.id == emojiIntensity.id,
+                                action: {
+                                    viewModel.selectedEmoji = emojiIntensity
+                                },
+                                isCountVisible: false,
+                                fontSize: 40
+                            )
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity)
         }
     }
     
@@ -131,7 +133,7 @@ struct TearFormView: View {
             Text("Когда это случилось?")
                 .font(.headline)
             
-            DatePicker("", selection: $selectedDate, displayedComponents: [.date, .hourAndMinute])
+            DatePicker("", selection: $viewModel.selectedDate, displayedComponents: [.date, .hourAndMinute])
                 .datePickerStyle(.compact)
                 .labelsHidden()
                 .padding([.all], 8)

@@ -3,12 +3,12 @@ import SwiftData
 
 struct EmojiManagementView: View {
     @Bindable var dataManager: TearDataManager
-    @State private var showingAlert = false
-    @State private var emojiToDeleteIndex: Int?
-    @State private var showingAddEmojiSheet = false
-    @State private var showingEditEmojiSheet = false
-    @State private var isEditing = false
-    @State private var emojiToEdit: EmojiIntensity?
+    @StateObject private var viewModel: EmojiManagementViewModel
+    
+    init(dataManager: TearDataManager) {
+        self.dataManager = dataManager
+        _viewModel = StateObject(wrappedValue: EmojiManagementViewModel(dataManager: dataManager))
+    }
     
     var body: some View {
         VStack(spacing: 16) {
@@ -19,49 +19,62 @@ struct EmojiManagementView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
-                Button { showingAddEmojiSheet = true } label: {
+                Button { viewModel.showingAddEmojiSheet = true } label: {
                     Image(systemName: "plus.circle.fill").font(.title2)
                 }
             }
         }
-        .sheet(isPresented: $showingAddEmojiSheet) {
+        .sheet(isPresented: $viewModel.showingAddEmojiSheet) {
             NavigationStack {
-                AddEmojiView(dataManager: dataManager, isPresented: $showingAddEmojiSheet)
+                AddEmojiView(dataManager: dataManager, isPresented: $viewModel.showingAddEmojiSheet)
             }
         }
-        .sheet(item: $emojiToEdit) { emoji in
-            EditEmojiView(dataManager: dataManager, isPresented: $showingEditEmojiSheet, emojiIntensity: emoji)
+        .sheet(item: Binding(
+            get: { viewModel.emojiToEdit },
+            set: { _ in viewModel.dismissEdit() }
+        )) { emoji in
+            EditEmojiView(
+                dataManager: dataManager,
+                isPresented: Binding(
+                    get: { viewModel.emojiToEdit != nil },
+                    set: { if !$0 { viewModel.dismissEdit() } }
+                ),
+                emojiIntensity: emoji
+            )
         }
-        .alert("Удалить эмодзи?", isPresented: $showingAlert) {
+        .alert("Удалить эмодзи?", isPresented: $viewModel.showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
             Button("Удалить", role: .destructive) {
-                if let index = emojiToDeleteIndex {
-                    dataManager.removeEmojiIntensity(at: index)
-                }
-                emojiToDeleteIndex = nil
+                viewModel.confirmDelete()
             }
         } message: {
             Text("Эмодзи будет удален из всех записей")
         }
         .environment(\.editMode, Binding(
-            get: { isEditing ? .active : .inactive },
+            get: { viewModel.isEditing ? .active : .inactive },
             set: { newValue in
-                isEditing = newValue == .active
+                viewModel.isEditing = newValue == .active
             }
         ))
+        .onAppear {
+            viewModel.syncFromDataManager()
+        }
+        .onChange(of: dataManager.refreshTrigger) { _ in
+            viewModel.syncFromDataManager()
+        }
     }
     
     private var existingEmojiSection: some View {
         List {
             Section(header: customHeader, footer: footerView) {
-                if dataManager.emojiIntensities.isEmpty {
+                if viewModel.emojiIntensities.isEmpty {
                     Text("Нет добавленных эмодзи")
                         .foregroundColor(.gray)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding()
                 } else {
-                    ForEach(dataManager.emojiIntensities.indices, id: \.self) { index in
-                        let emoji = dataManager.emojiIntensities[index]
+                    ForEach(viewModel.emojiIntensities.indices, id: \.self) { index in
+                        let emoji = viewModel.emojiIntensities[index]
                         HStack(spacing: 16) {
                             Text("\(index + 1)")
                                 .foregroundColor(.secondary)
@@ -69,10 +82,9 @@ struct EmojiManagementView: View {
                                 .frame(width: 24)
                             EmojiCell(emoji: emoji)
                             Spacer()
-                            if !isEditing {
+                            if !viewModel.isEditing {
                                 Button {
-                                    emojiToEdit = emoji
-                                    showingEditEmojiSheet = true
+                                    viewModel.presentEdit(for: emoji)
                                 } label: {
                                     Image(systemName: "pencil")
                                         .foregroundColor(.white)
@@ -81,16 +93,15 @@ struct EmojiManagementView: View {
                         }
                         .swipeActions(allowsFullSwipe: false) {
                             Button(role: .destructive) {
-                                emojiToDeleteIndex = index
-                                showingAlert = true
+                                viewModel.presentDelete(at: index)
                             } label: {
                                 Label("Удалить", systemImage: "trash")
                             }
-                            .disabled(dataManager.emojiIntensities.count <= 1)
+                            .disabled(!viewModel.canDeleteSelectedEmoji)
                         }
                     }
                     .onMove { indices, destination in
-                        dataManager.moveEmojiIntensity(from: indices, to: destination)
+                        viewModel.moveEmojis(from: indices, to: destination)
                     }
                 }
             }
@@ -104,9 +115,9 @@ struct EmojiManagementView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             Spacer()
             Button(action: {
-                isEditing.toggle()
+                viewModel.toggleEditing()
             }) {
-                Text(isEditing ? "Готово" : "Редактировать")
+                Text(viewModel.isEditing ? "Готово" : "Редактировать")
                     .foregroundColor(.blue)
                     .font(.subheadline)
                     .frame(maxWidth: .infinity, alignment: .trailing)
@@ -118,8 +129,8 @@ struct EmojiManagementView: View {
     
     private var footerView: some View {
         Group {
-            if isEditing {
-                Text("Перетащите эмодзи, чтобы изменить их порядок")
+            if let footerText = viewModel.footerText {
+                Text(footerText)
             }
         }
     }
