@@ -2,42 +2,22 @@ import SwiftUI
 import SwiftData
 
 struct EmojiManagementView: View {
-    @Environment(\.dismiss) var dismiss
     @Bindable var dataManager: TearDataManager
-    @State private var newEmoji = ""
-    @State private var selectedColor = Color.blue
     @State private var showingAlert = false
     @State private var emojiToDeleteIndex: Int?
-    @State private var editingEmojiIndex: Int?
     @State private var showingAddEmojiSheet = false
     @State private var showingEditEmojiSheet = false
     @State private var isEditing = false
     @State private var emojiToEdit: EmojiIntensity?
-    @State private var emojiToDelete: EmojiIntensity?
     
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 16) {
-                existingEmojiSection
-            }
-            .padding(.vertical, 1)
+        VStack(spacing: 16) {
+            existingEmojiSection
         }
+        .padding(.vertical, 1)
         .navigationTitle("Управление эмодзи")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationBarBackButtonHidden(true)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    HStack(spacing:4) {
-                        Image(systemName: "chevron.left")
-                            .font(.title3)
-                            .fontWeight(.semibold)
-                        Text("Назад")
-                    }
-                }
-            }
             ToolbarItem(placement: .topBarTrailing) {
                 Button { showingAddEmojiSheet = true } label: {
                     Image(systemName: "plus.circle.fill").font(.title2)
@@ -117,15 +97,6 @@ struct EmojiManagementView: View {
         }
     }
     
-    private func addEmoji() {
-        if !newEmoji.isEmpty {
-            let emoji = EmojiIntensity(emoji: newEmoji, color: selectedColor)
-            dataManager.addEmojiIntensity(emoji)
-            newEmoji = ""
-            selectedColor = .blue
-        }
-    }
-    
     private var customHeader: some View {
         HStack {
             Text("Эмодзи")
@@ -182,14 +153,7 @@ private struct EmojiCell: View {
 }
 
 #Preview {
-    do {
-        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
-        let modelContext = ModelContext(container)
-        let dataManager = TearDataManager(modelContext: modelContext)
-        return NavigationStack {
-            EmojiManagementView(dataManager: dataManager)
-        }
-    } catch {
-        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
+    NavigationStack {
+        EmojiManagementView(dataManager: makePreviewDataManager())
     }
 }

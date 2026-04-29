@@ -22,13 +22,5 @@ struct AddTearView: View {
 }
 
 #Preview {
-    do {
-        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
-        let modelContext = ModelContext(container)
-        let dataManager = TearDataManager(modelContext: modelContext)
-        return AddTearView(dataManager: dataManager)
-    } catch {
-        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
-    }
+    AddTearView(dataManager: makePreviewDataManager())
 }
-

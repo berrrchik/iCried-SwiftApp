@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct TagManagementView: View {
-    @Environment(\.dismiss) var dismiss
     @Bindable var dataManager: TearDataManager
     @State private var showingAddTagSheet = false
     @State private var showingEditTagSheet = false
@@ -12,61 +11,46 @@ struct TagManagementView: View {
     @State private var isEditing = false
     
     var body: some View {
-        NavigationStack {
-            VStack() {
-                existingTagsSection
-            }
-            .padding(.vertical, 1)
-            .navigationTitle("Управление тегами")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button {
-                        dismiss()
-                    } label: {
-                        HStack(spacing:4) {
-                            Image(systemName: "chevron.left")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text("Назад")
-                        }
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: { showingAddTagSheet = true }) {
-                        Image(systemName: "plus.circle.fill")
-                            .foregroundColor(.blue)
-                            .font(.title2)
-                    }
-                }
-            }
-            .navigationBarBackButtonHidden(true)
-            .sheet(isPresented: $showingAddTagSheet) {
-                AddTagView(dataManager: dataManager, isPresented: $showingAddTagSheet)
-            }
-            .sheet(item: $tagToEdit) { tag in
-                EditTagView(dataManager: dataManager, isPresented: $showingEditTagSheet, tag: tag)
-            }
-            .alert("Удалить тег?", isPresented: $showingAlert) {
-                Button("Отмена", role: .cancel) { }
-                Button("Удалить", role: .destructive) {
-                    if let tag = tagToDelete {
-                        dataManager.removeTag(tag.id)
-                    }
-                    tagToDelete = nil
-                }
-            } message: {
-                if let tag = tagToDelete {
-                    Text("Тег \(tag.name) будет удален из всех записей")
-                }
-            }
-            .environment(\.editMode, Binding(
-                get: { isEditing ? .active : .inactive },
-                set: { newValue in
-                    isEditing = newValue == .active
-                }
-            ))
+        VStack {
+            existingTagsSection
         }
+        .padding(.vertical, 1)
+        .navigationTitle("Управление тегами")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: { showingAddTagSheet = true }) {
+                    Image(systemName: "plus.circle.fill")
+                        .foregroundColor(.blue)
+                        .font(.title2)
+                }
+            }
+        }
+        .sheet(isPresented: $showingAddTagSheet) {
+            AddTagView(dataManager: dataManager, isPresented: $showingAddTagSheet)
+        }
+        .sheet(item: $tagToEdit) { tag in
+            EditTagView(dataManager: dataManager, isPresented: $showingEditTagSheet, tag: tag)
+        }
+        .alert("Удалить тег?", isPresented: $showingAlert) {
+            Button("Отмена", role: .cancel) { }
+            Button("Удалить", role: .destructive) {
+                if let tag = tagToDelete {
+                    dataManager.removeTag(tag.id)
+                }
+                tagToDelete = nil
+            }
+        } message: {
+            if let tag = tagToDelete {
+                Text("Тег \(tag.name) будет удален из всех записей")
+            }
+        }
+        .environment(\.editMode, Binding(
+            get: { isEditing ? .active : .inactive },
+            set: { newValue in
+                isEditing = newValue == .active
+            }
+        ))
     }
     
     private var existingTagsSection: some View {
@@ -89,6 +73,8 @@ struct TagManagementView: View {
                                     tagToEdit = tag
                                     showingEditTagSheet = true
                                 } label: {
+                                    Image(systemName: "pencil")
+                                        .foregroundColor(.blue)
                                 }
                             }
                         }
@@ -140,15 +126,7 @@ struct TagManagementView: View {
 }
 
 #Preview {
-    do {
-        let container = try ModelContainer(for: TearEntry.self, EmojiIntensity.self, TagItem.self)
-        let modelContext = ModelContext(container)
-        let dataManager = TearDataManager(modelContext: modelContext)
-        return NavigationStack {
-            TagManagementView(dataManager: dataManager)
-        }
-    } catch {
-        return Text("Ошибка при создании ModelContainer: \(error.localizedDescription)")
+    NavigationStack {
+        TagManagementView(dataManager: makePreviewDataManager())
     }
 }
-
