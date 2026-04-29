@@ -33,6 +33,7 @@
 		58A100082E1800010097709F /* StatisticsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101082E1800010097709F /* StatisticsEngine.swift */; };
 		58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101092E1800010097709F /* CryingMomentsPluralizer.swift */; };
 		58A1000A2E1900010097709F /* DiaryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A1010A2E1900010097709F /* DiaryViewModel.swift */; };
+		58A1000F2E1A00010097709F /* DiaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A1010F2E1A00010097709F /* DiaryView.swift */; };
 		58A1000B2E1900010097709F /* StatisticsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A1010B2E1900010097709F /* StatisticsViewModel.swift */; };
 		58A1000C2E1900010097709F /* TearFormViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A1010C2E1900010097709F /* TearFormViewModel.swift */; };
 		58A1000D2E1900010097709F /* TagManagementViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A1010D2E1900010097709F /* TagManagementViewModel.swift */; };
@@ -43,7 +44,7 @@
 		577C75D22D9E92290052ECF3 /* DuplicateRemover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */; };
 		57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57AE18F52D66782D002A3FDB /* EditTearView.swift */; };
 		57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */; };
-		57DE81632D6627FD0097709F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81622D6627FD0097709F /* ContentView.swift */; };
+		57DE81632D6627FD0097709F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81622D6627FD0097709F /* RootView.swift */; };
 		5810A1B92E16A11E0097709F /* PreviewSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5810A1B82E16A11E0097709F /* PreviewSupport.swift */; };
 		57DE81652D6627FE0097709F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57DE81642D6627FE0097709F /* Assets.xcassets */; };
 		57DE81682D6627FE0097709F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 57DE81672D6627FE0097709F /* Preview Assets.xcassets */; };
@@ -82,8 +83,8 @@
 		572787BF2D820AA700639424 /* EmojiButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiButton.swift; sourceTree = "<group>"; };
 		573968282D70C03500679200 /* AddTearView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddTearView.swift; sourceTree = "<group>"; };
 		573968292D70C03500679200 /* TearFormView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TearFormView.swift; sourceTree = "<group>"; };
-		5739682D2D70DE1200679200 /* FlowLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = FlowLayout.swift; path = iCriedTodayDesign/Views/Components/FlowLayout.swift; sourceTree = SOURCE_ROOT; };
-		5739682E2D70DE1200679200 /* TagButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = TagButton.swift; path = iCriedTodayDesign/Views/Components/TagButton.swift; sourceTree = SOURCE_ROOT; };
+		5739682D2D70DE1200679200 /* FlowLayout.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		5739682E2D70DE1200679200 /* TagButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TagButton.swift; sourceTree = "<group>"; };
 		573968312D70F12500679200 /* TagManagementView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TagManagementView.swift; sourceTree = "<group>"; };
 		573968322D70F12500679200 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		573968352D749B1300679200 /* EmojiIntensity.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EmojiIntensity.swift; sourceTree = "<group>"; };
@@ -101,6 +102,7 @@
 		58A101082E1800010097709F /* StatisticsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsEngine.swift; sourceTree = "<group>"; };
 		58A101092E1800010097709F /* CryingMomentsPluralizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CryingMomentsPluralizer.swift; sourceTree = "<group>"; };
 		58A1010A2E1900010097709F /* DiaryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryViewModel.swift; sourceTree = "<group>"; };
+		58A1010F2E1A00010097709F /* DiaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiaryView.swift; sourceTree = "<group>"; };
 		58A1010B2E1900010097709F /* StatisticsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsViewModel.swift; sourceTree = "<group>"; };
 		58A1010C2E1900010097709F /* TearFormViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TearFormViewModel.swift; sourceTree = "<group>"; };
 		58A1010D2E1900010097709F /* TagManagementViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManagementViewModel.swift; sourceTree = "<group>"; };
@@ -112,7 +114,7 @@
 		57AE18F52D66782D002A3FDB /* EditTearView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditTearView.swift; sourceTree = "<group>"; };
 		57DE815D2D6627FD0097709F /* iCriedTodayDesign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCriedTodayDesign.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iCriedTodayDesignApp.swift; sourceTree = "<group>"; };
-		57DE81622D6627FD0097709F /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		57DE81622D6627FD0097709F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		5810A1B82E16A11E0097709F /* PreviewSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSupport.swift; sourceTree = "<group>"; };
 		57DE81642D6627FE0097709F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		57DE81672D6627FE0097709F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
@@ -156,8 +158,29 @@
 			children = (
 				58A102032E1800010097709F /* Analytics */,
 				58A102022E1700010097709F /* Contracts */,
+				57DE81942D66651A0097709F /* Models */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		58A102022E1700010097709F /* Contracts */ = {
+			isa = PBXGroup;
+			children = (
+				58A101012E1700010097709F /* RepositoryProtocols.swift */,
+			);
+			path = Contracts;
+			sourceTree = "<group>";
+		};
+		58A102032E1800010097709F /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				58A101062E1800010097709F /* AnalyticsModels.swift */,
+				577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */,
+				58A101072E1800010097709F /* EntryGrouper.swift */,
+				58A101082E1800010097709F /* StatisticsEngine.swift */,
+				58A101092E1800010097709F /* CryingMomentsPluralizer.swift */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		58A102042E1900010097709F /* Features */ = {
@@ -165,9 +188,10 @@
 			children = (
 				58A102052E1900010097709F /* Diary */,
 				58A102062E1900010097709F /* Statistics */,
-				58A102072E1900010097709F /* TearRecord */,
+				58A102072E1900010097709F /* EntryForm */,
 				58A102082E1900010097709F /* Tags */,
 				58A102092E1900010097709F /* Emojis */,
+				58A102172E1A00010097709F /* Settings */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -176,6 +200,7 @@
 			isa = PBXGroup;
 			children = (
 				58A1020A2E1900010097709F /* ViewModels */,
+				58A102192E1A00010097709F /* Views */,
 			);
 			path = Diary;
 			sourceTree = "<group>";
@@ -184,22 +209,25 @@
 			isa = PBXGroup;
 			children = (
 				58A1020B2E1900010097709F /* ViewModels */,
+				58A1021A2E1A00010097709F /* Views */,
 			);
 			path = Statistics;
 			sourceTree = "<group>";
 		};
-		58A102072E1900010097709F /* TearRecord */ = {
+		58A102072E1900010097709F /* EntryForm */ = {
 			isa = PBXGroup;
 			children = (
 				58A1020C2E1900010097709F /* ViewModels */,
+				571049182D89940A002AA105 /* Views */,
 			);
-			path = TearRecord;
+			path = EntryForm;
 			sourceTree = "<group>";
 		};
 		58A102082E1900010097709F /* Tags */ = {
 			isa = PBXGroup;
 			children = (
 				58A1020D2E1900010097709F /* ViewModels */,
+				571049162D899397002AA105 /* Views */,
 			);
 			path = Tags;
 			sourceTree = "<group>";
@@ -208,6 +236,7 @@
 			isa = PBXGroup;
 			children = (
 				58A1020E2E1900010097709F /* ViewModels */,
+				571049172D8993A0002AA105 /* Views */,
 			);
 			path = Emojis;
 			sourceTree = "<group>";
@@ -252,82 +281,165 @@
 			path = ViewModels;
 			sourceTree = "<group>";
 		};
-		58A102032E1800010097709F /* Analytics */ = {
+		58A1020F2E1A00010097709F /* App */ = {
 			isa = PBXGroup;
 			children = (
-				58A101062E1800010097709F /* AnalyticsModels.swift */,
-				58A101072E1800010097709F /* EntryGrouper.swift */,
-				58A101082E1800010097709F /* StatisticsEngine.swift */,
-				58A101092E1800010097709F /* CryingMomentsPluralizer.swift */,
+				57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */,
+				57DE81622D6627FD0097709F /* RootView.swift */,
+				58A102102E1A00010097709F /* State */,
 			);
-			path = Analytics;
+			path = App;
 			sourceTree = "<group>";
 		};
-		58A102022E1700010097709F /* Contracts */ = {
+		58A102102E1A00010097709F /* State */ = {
 			isa = PBXGroup;
 			children = (
-				58A101012E1700010097709F /* RepositoryProtocols.swift */,
+				577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */,
+				57DE81922D66651A0097709F /* TearDataManager.swift */,
 			);
-			path = Contracts;
+			path = State;
 			sourceTree = "<group>";
 		};
-		571049162D899397002AA105 /* Tags */ = {
+		58A102112E1A00010097709F /* Core */ = {
 			isa = PBXGroup;
 			children = (
-				573968312D70F12500679200 /* TagManagementView.swift */,
+				58A102122E1A00010097709F /* Logging */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		58A102122E1A00010097709F /* Logging */ = {
+			isa = PBXGroup;
+			children = (
+				5810A1B62E16A0320097709F /* DebugLog.swift */,
+			);
+			path = Logging;
+			sourceTree = "<group>";
+		};
+		58A102132E1A00010097709F /* Persistence */ = {
+			isa = PBXGroup;
+			children = (
+				58A102142E1A00010097709F /* Repositories */,
+			);
+			path = Persistence;
+			sourceTree = "<group>";
+		};
+		58A102142E1A00010097709F /* Repositories */ = {
+			isa = PBXGroup;
+			children = (
+				58A101022E1700010097709F /* EntryRepository.swift */,
+				58A101032E1700010097709F /* TagRepository.swift */,
+				58A101042E1700010097709F /* EmojiRepository.swift */,
+			);
+			path = Repositories;
+			sourceTree = "<group>";
+		};
+		58A102152E1A00010097709F /* Seed */ = {
+			isa = PBXGroup;
+			children = (
+				58A101052E1700010097709F /* InitialDataSeeder.swift */,
+			);
+			path = Seed;
+			sourceTree = "<group>";
+		};
+		58A102162E1A00010097709F /* Migration */ = {
+			isa = PBXGroup;
+			children = (
+				577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */,
+			);
+			path = Migration;
+			sourceTree = "<group>";
+		};
+		58A102172E1A00010097709F /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				58A102182E1A00010097709F /* Views */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
+		58A102182E1A00010097709F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				573968322D70F12500679200 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		58A102192E1A00010097709F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				58A1010F2E1A00010097709F /* DiaryView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		58A1021A2E1A00010097709F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				57DE818C2D66651A0097709F /* StatisticsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		58A1021B2E1A00010097709F /* Preview */ = {
+			isa = PBXGroup;
+			children = (
+				5810A1B82E16A11E0097709F /* PreviewSupport.swift */,
+			);
+			path = Preview;
+			sourceTree = "<group>";
+		};
+		571049162D899397002AA105 /* Views */ = {
+			isa = PBXGroup;
+			children = (
 				571049102D874CC0002AA105 /* AddTagView.swift */,
 				571049122D874CE1002AA105 /* EditTagView.swift */,
+				573968312D70F12500679200 /* TagManagementView.swift */,
 			);
-			path = Tags;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		571049172D8993A0002AA105 /* Emojis */ = {
+		571049172D8993A0002AA105 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				573968372D749B2700679200 /* EmojiManagementView.swift */,
 				571049142D8755F1002AA105 /* AddEmojiView.swift */,
 				573968392D749EF100679200 /* EditEmojiView.swift */,
+				573968372D749B2700679200 /* EmojiManagementView.swift */,
 			);
-			path = Emojis;
+			path = Views;
 			sourceTree = "<group>";
 		};
-		571049182D89940A002AA105 /* TearRecord */ = {
+		571049182D89940A002AA105 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				573968292D70C03500679200 /* TearFormView.swift */,
 				573968282D70C03500679200 /* AddTearView.swift */,
 				57AE18F52D66782D002A3FDB /* EditTearView.swift */,
+				573968292D70C03500679200 /* TearFormView.swift */,
 			);
-			path = TearRecord;
+			path = Views;
 			sourceTree = "<group>";
 		};
 		5739682C2D70DDEB00679200 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				572787BF2D820AA700639424 /* EmojiButton.swift */,
 				577C75B92D9C88650052ECF3 /* EmptyStateView.swift */,
-				5810A1B42E16A0010097709F /* TearCard.swift */,
 				5739682D2D70DE1200679200 /* FlowLayout.swift */,
 				5739682E2D70DE1200679200 /* TagButton.swift */,
-				572787BF2D820AA700639424 /* EmojiButton.swift */,
+				5810A1B42E16A0010097709F /* TearCard.swift */,
 			);
-			name = Components;
-			path = ../Components;
+			path = Components;
 			sourceTree = "<group>";
 		};
-		577C75BE2D9C90490052ECF3 /* DataManagement */ = {
+		577C75BE2D9C90490052ECF3 /* Data */ = {
 			isa = PBXGroup;
 			children = (
-				577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */,
-				58A101052E1700010097709F /* InitialDataSeeder.swift */,
-				577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */,
-				5810A1B62E16A0320097709F /* DebugLog.swift */,
-				58A101042E1700010097709F /* EmojiRepository.swift */,
-				58A101032E1700010097709F /* TagRepository.swift */,
-				58A101022E1700010097709F /* EntryRepository.swift */,
-				577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */,
-				57DE81922D66651A0097709F /* TearDataManager.swift */,
+				58A102132E1A00010097709F /* Persistence */,
+				58A102152E1A00010097709F /* Seed */,
+				58A102162E1A00010097709F /* Migration */,
 			);
-			path = DataManagement;
+			path = Data;
 			sourceTree = "<group>";
 		};
 		57DE81542D6627FD0097709F = {
@@ -355,14 +467,12 @@
 			children = (
 				570AD3712D9738A700E68F8E /* Info.plist */,
 				570AD3702D9734C300E68F8E /* iCriedTodayDesign.entitlements */,
+				58A1020F2E1A00010097709F /* App */,
+				58A102112E1A00010097709F /* Core */,
+				577C75BE2D9C90490052ECF3 /* Data */,
 				58A102012E1700010097709F /* Domain */,
 				58A102042E1900010097709F /* Features */,
-				577C75BE2D9C90490052ECF3 /* DataManagement */,
-				57DE81942D66651A0097709F /* Models */,
-				57DE818D2D66651A0097709F /* Views */,
-				57DE81622D6627FD0097709F /* ContentView.swift */,
-				5810A1B82E16A11E0097709F /* PreviewSupport.swift */,
-				57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */,
+				57DE818D2D66651A0097709F /* Shared */,
 				57DE81642D6627FE0097709F /* Assets.xcassets */,
 				57DE81662D6627FE0097709F /* Preview Content */,
 			);
@@ -394,17 +504,13 @@
 			path = iCriedTodayDesignUITests;
 			sourceTree = "<group>";
 		};
-		57DE818D2D66651A0097709F /* Views */ = {
+		57DE818D2D66651A0097709F /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				571049182D89940A002AA105 /* TearRecord */,
 				5739682C2D70DDEB00679200 /* Components */,
-				571049172D8993A0002AA105 /* Emojis */,
-				571049162D899397002AA105 /* Tags */,
-				573968322D70F12500679200 /* SettingsView.swift */,
-				57DE818C2D66651A0097709F /* StatisticsView.swift */,
+				58A1021B2E1A00010097709F /* Preview */,
 			);
-			path = Views;
+			path = Shared;
 			sourceTree = "<group>";
 		};
 		57DE81942D66651A0097709F /* Models */ = {
@@ -559,6 +665,7 @@
 				58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */,
 				577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */,
 				58A100072E1800010097709F /* EntryGrouper.swift in Sources */,
+				58A1000F2E1A00010097709F /* DiaryView.swift in Sources */,
 				58A1000A2E1900010097709F /* DiaryViewModel.swift in Sources */,
 				5810A1B52E16A0010097709F /* TearCard.swift in Sources */,
 				57DE81972D66651A0097709F /* StatisticsView.swift in Sources */,
@@ -580,7 +687,7 @@
 				5810A1B72E16A0320097709F /* DebugLog.swift in Sources */,
 				5739682F2D70DE1200679200 /* FlowLayout.swift in Sources */,
 				58A100022E1700010097709F /* EntryRepository.swift in Sources */,
-				57DE81632D6627FD0097709F /* ContentView.swift in Sources */,
+				57DE81632D6627FD0097709F /* RootView.swift in Sources */,
 				5810A1B92E16A11E0097709F /* PreviewSupport.swift in Sources */,
 				58A100052E1700010097709F /* InitialDataSeeder.swift in Sources */,
 				573968342D70F12500679200 /* SettingsView.swift in Sources */,
