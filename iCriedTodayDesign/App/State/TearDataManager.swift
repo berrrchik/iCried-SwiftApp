@@ -1,11 +1,11 @@
 import Foundation
 import SwiftData
 import Combine
-import SwiftUI
 
 @MainActor
-@Observable
-class TearDataManager: DataManagerProtocol {
+final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataManaging, StatisticsDataManaging, TagDataManaging, EmojiDataManaging, EntryFormDataProviding, EntryDisplayProviding {
+    private static let duplicateCleanupVersion = "duplicate-cleanup-v1"
+
     private let entryRepository: any EntryRepositoryProtocol
     private let tagRepository: any TagRepositoryProtocol
     private let emojiRepository: any EmojiRepositoryProtocol
@@ -13,7 +13,7 @@ class TearDataManager: DataManagerProtocol {
     private var dataAnalyzer: DataAnalyzer
     private var remoteChangeObserver: AnyCancellable?
     
-    var refreshTrigger = UUID()
+    @Published var refreshTrigger = UUID()
     var entries: [TearEntry] { entryRepository.entries }
     var tags: [TagItem] { tagRepository.tags }
     var emojiIntensities: [EmojiIntensity] { emojiRepository.emojiIntensities }
@@ -163,6 +163,8 @@ class TearDataManager: DataManagerProtocol {
     }
 
     private func runInitialCleanup() {
+        guard shouldRunDuplicateCleanup else { return }
+
         let duplicateRemover = DuplicateRemover(
             entryRepository: entryRepository,
             tagRepository: tagRepository,
@@ -171,6 +173,7 @@ class TearDataManager: DataManagerProtocol {
         
         duplicateRemover.removeDuplicates()
         updateAnalyzer()
+        UserDefaults.standard.set(true, forKey: Self.duplicateCleanupVersion)
         debugLog("Дубликаты удалены")
     }
 
@@ -189,9 +192,16 @@ class TearDataManager: DataManagerProtocol {
     private func observeRemoteChanges() {
         remoteChangeObserver = NotificationCenter.default
             .publisher(for: .NSPersistentStoreRemoteChange)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
-                guard let self else { return }
-                self.reloadFromStore(reason: "remote change")
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.reloadFromStore(reason: "remote change")
+                }
             }
+    }
+
+    private var shouldRunDuplicateCleanup: Bool {
+        !UserDefaults.standard.bool(forKey: Self.duplicateCleanupVersion)
     }
 }
