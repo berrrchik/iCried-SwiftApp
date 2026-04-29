@@ -2,7 +2,7 @@ import SwiftUI
 
 struct TearCard: View {
     let entry: TearEntry
-    @Bindable var dataManager: TearDataManager
+    @ObservedObject var dataManager: TearDataManager
     @State private var showingEditSheet = false
     
     private var formattedDate: String {
@@ -47,7 +47,24 @@ struct TearCard: View {
         }
         .buttonStyle(PlainButtonStyle())
         .sheet(isPresented: $showingEditSheet) {
-            EditTearView(dataManager: dataManager, entry: entry)
+            EditTearView(
+                availableTags: dataManager.tags,
+                availableEmojiIntensities: dataManager.emojiIntensities,
+                entry: entry,
+                onSave: { entryID, newDate, newEmojiId, newTagId, newNote in
+                    do {
+                        try dataManager.updateEntry(
+                            withId: entryID,
+                            newDate: newDate,
+                            newEmojiId: newEmojiId,
+                            newTagId: newTagId,
+                            newNote: newNote
+                        )
+                    } catch {
+                        debugLog("Ошибка обновления записи: \(error)")
+                    }
+                }
+            )
         }
     }
 }

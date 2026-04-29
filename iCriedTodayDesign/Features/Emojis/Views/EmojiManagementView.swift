@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct EmojiManagementView: View {
-    @Bindable var dataManager: TearDataManager
+    @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: EmojiManagementViewModel
     
     init(dataManager: TearDataManager) {
@@ -26,7 +26,12 @@ struct EmojiManagementView: View {
         }
         .sheet(isPresented: $viewModel.showingAddEmojiSheet) {
             NavigationStack {
-                AddEmojiView(dataManager: dataManager, isPresented: $viewModel.showingAddEmojiSheet)
+                AddEmojiView(
+                    isPresented: $viewModel.showingAddEmojiSheet,
+                    onAdd: { emoji in
+                        viewModel.addEmoji(emoji)
+                    }
+                )
             }
         }
         .sheet(item: Binding(
@@ -34,12 +39,15 @@ struct EmojiManagementView: View {
             set: { _ in viewModel.dismissEdit() }
         )) { emoji in
             EditEmojiView(
-                dataManager: dataManager,
                 isPresented: Binding(
                     get: { viewModel.emojiToEdit != nil },
                     set: { if !$0 { viewModel.dismissEdit() } }
                 ),
-                emojiIntensity: emoji
+                emojiIntensity: emoji,
+                existingEmojiIntensities: dataManager.emojiIntensities,
+                onSave: { updatedEmoji, index in
+                    viewModel.saveEmoji(updatedEmoji, at: index)
+                }
             )
         }
         .alert("Удалить эмодзи?", isPresented: $viewModel.showingDeleteAlert) {

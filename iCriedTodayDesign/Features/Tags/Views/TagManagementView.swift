@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 struct TagManagementView: View {
-    @Bindable var dataManager: TearDataManager
+    @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: TagManagementViewModel
     
     init(dataManager: TearDataManager) {
@@ -27,19 +27,26 @@ struct TagManagementView: View {
             }
         }
         .sheet(isPresented: $viewModel.showingAddTagSheet) {
-            AddTagView(dataManager: dataManager, isPresented: $viewModel.showingAddTagSheet)
+            AddTagView(
+                isPresented: $viewModel.showingAddTagSheet,
+                onAdd: { tag in
+                    viewModel.addTag(tag)
+                }
+            )
         }
         .sheet(item: Binding(
             get: { viewModel.tagToEdit },
             set: { _ in viewModel.dismissEdit() }
         )) { tag in
             EditTagView(
-                dataManager: dataManager,
                 isPresented: Binding(
                     get: { viewModel.tagToEdit != nil },
                     set: { if !$0 { viewModel.dismissEdit() } }
                 ),
-                tag: tag
+                tag: tag,
+                onSave: { tagID, name in
+                    viewModel.saveTag(id: tagID, name: name)
+                }
             )
         }
         .alert("Удалить тег?", isPresented: $viewModel.showingDeleteAlert) {

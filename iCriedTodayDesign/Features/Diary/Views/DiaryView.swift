@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct DiaryView: View {
-    @Bindable var dataManager: TearDataManager
+    @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: DiaryViewModel
     
     init(dataManager: TearDataManager) {
@@ -13,7 +13,7 @@ struct DiaryView: View {
         VStack(spacing: -5) {
             headerView
             
-            if dataManager.entries.isEmpty {
+            if viewModel.isEmpty {
                 EmptyStateView(
                     title: "Начните свой путь",
                     subtitle: "Запишите свой первый момент грусти и начните путешествие к самопознанию",
@@ -30,9 +30,15 @@ struct DiaryView: View {
             }
         }
         .id(dataManager.refreshTrigger)
-        .animation(.easeInOut(duration: 0.3), value: dataManager.entries.isEmpty)
+        .animation(.easeInOut(duration: 0.3), value: viewModel.isEmpty)
         .sheet(isPresented: $viewModel.showingAddTear) {
-            AddTearView(dataManager: dataManager)
+            AddTearView(
+                availableTags: viewModel.availableTags,
+                availableEmojiIntensities: viewModel.availableEmojiIntensities,
+                onSave: { newEntry in
+                    viewModel.addEntry(newEntry)
+                }
+            )
         }
         .alert("Удалить запись?", isPresented: $viewModel.showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }

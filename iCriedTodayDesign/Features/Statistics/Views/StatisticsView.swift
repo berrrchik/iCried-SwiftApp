@@ -2,7 +2,7 @@ import SwiftUI
 import Charts
 
 struct StatisticsView: View {
-    @Bindable var dataManager: TearDataManager
+    @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: StatisticsViewModel
     
     init(dataManager: TearDataManager) {
@@ -12,7 +12,7 @@ struct StatisticsView: View {
     
     var body: some View {
         Group {
-            if dataManager.entries.isEmpty {
+            if viewModel.isEmpty {
                 EmptyStateView(
                     title: "Нет данных для анализа",
                     subtitle: "Добавьте свой первый момент грусти, чтобы начать отслеживать свои эмоции",
@@ -54,7 +54,13 @@ struct StatisticsView: View {
         }
         .navigationTitle("Статистика")
         .sheet(isPresented: $viewModel.showingAddTear) {
-            AddTearView(dataManager: dataManager)
+            AddTearView(
+                availableTags: viewModel.availableTags,
+                availableEmojiIntensities: viewModel.availableEmojiIntensities,
+                onSave: { newEntry in
+                    viewModel.addEntry(newEntry)
+                }
+            )
         }
         .alert("Удалить запись?", isPresented: $viewModel.showingDeleteAlert) {
             Button("Отмена", role: .cancel) { }
@@ -99,7 +105,7 @@ struct StatisticsView: View {
             Chart {
                 ForEach(viewModel.snapshot.monthPoints) { item in
                     let reversedIntensityCounts = Array(item.intensityCounts.reversed())
-                    ForEach(Array(dataManager.emojiIntensities.reversed().enumerated()), id: \.element.id) { index, emojiIntensity in
+                    ForEach(Array(viewModel.availableEmojiIntensities.reversed().enumerated()), id: \.element.id) { index, emojiIntensity in
                         if index < reversedIntensityCounts.count {
                             let startValue = index == 0 ? 0 : reversedIntensityCounts.prefix(index).reduce(0, +)
                             let endValue = startValue + reversedIntensityCounts[index]
@@ -144,7 +150,7 @@ struct StatisticsView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 20) {
                 ForEach(viewModel.snapshot.emojiItems) { stat in
-                    if let emojiIntensity = dataManager.emojiIntensities.first(where: { $0.id == stat.emojiID }) {
+                    if let emojiIntensity = viewModel.availableEmojiIntensities.first(where: { $0.id == stat.emojiID }) {
                         EmojiButton(
                             emoji: stat.emoji,
                             count: stat.count,
@@ -169,7 +175,7 @@ struct StatisticsView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(spacing: 10) {
                 ForEach(viewModel.snapshot.tagItems.filter { $0.count > 0 }) { stat in
-                    if let tag = dataManager.tags.first(where: { $0.id == stat.tagID }) {
+                    if let tag = viewModel.availableTags.first(where: { $0.id == stat.tagID }) {
                         TagButton(
                             tagName: stat.name,
                             isSelected: viewModel.selectedTagIDs.contains(tag.id),
