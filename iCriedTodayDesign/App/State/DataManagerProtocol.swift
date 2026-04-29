@@ -19,10 +19,6 @@ protocol DataManagerProtocol: AnyObject {
     func removeTag(_ tagId: UUID)
     func moveTag(from source: IndexSet, to destination: Int)
     
-    func addEmojiIntensity(_ emoji: EmojiIntensity)
-    func removeEmojiIntensity(at index: Int)
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int)
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int)
 }
 
 @MainActor
@@ -60,16 +56,6 @@ protocol TagDataManaging: AnyObject {
     func updateTag(withId tagId: UUID, newName: String)
     func removeTag(_ tagId: UUID)
     func moveTag(from source: IndexSet, to destination: Int)
-}
-
-@MainActor
-protocol EmojiDataManaging: AnyObject {
-    var emojiIntensities: [EmojiIntensity] { get }
-    var refreshTrigger: UUID { get }
-    func addEmojiIntensity(_ emoji: EmojiIntensity)
-    func removeEmojiIntensity(at index: Int)
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int)
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int)
 }
 
 @MainActor

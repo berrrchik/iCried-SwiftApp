@@ -3,6 +3,12 @@ import SwiftData
 
 @MainActor
 final class EmojiRepository: EmojiRepositoryProtocol {
+    private static let defaultEmojiScale: [(emoji: String, opacity: Double)] = [
+        ("🥲", 0.4),
+        ("😢", 0.7),
+        ("😭", 1.0)
+    ]
+
     private let modelContext: ModelContext
     private(set) var emojiIntensities: [EmojiIntensity] = []
     
@@ -22,41 +28,22 @@ final class EmojiRepository: EmojiRepositoryProtocol {
             debugLog("Ошибка при загрузке эмодзи: \(error)")
         }
     }
-    
-    func addEmojiIntensity(_ emoji: EmojiIntensity) {
-        if !emojiIntensities.contains(where: { $0.emoji == emoji.emoji }) {
-            emoji.order = emojiIntensities.count
+
+    func ensureDefaultEmojiScale() {
+        guard emojiIntensities.isEmpty else { return }
+
+        for (index, item) in Self.defaultEmojiScale.enumerated() {
+            let emoji = EmojiIntensity(
+                emoji: item.emoji,
+                color: .blue,
+                opacity: item.opacity,
+                order: index
+            )
             modelContext.insert(emoji)
-            emojiIntensities.append(emoji)
-            save()
-        } else {
-            debugLog("Эмодзи '\(emoji.emoji)' уже существует")
         }
-    }
-    
-    func removeEmojiIntensity(at index: Int) {
-        guard index >= 0 && index < emojiIntensities.count else { return }
-        let emoji = emojiIntensities[index]
-        modelContext.delete(emoji)
-        emojiIntensities.remove(at: index)
+
         save()
-    }
-    
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
-        guard index >= 0 && index < emojiIntensities.count else { return }
-        let original = emojiIntensities[index]
-        original.emoji = updatedEmoji.emoji
-        original.colorHex = updatedEmoji.colorHex
-        original.opacity = updatedEmoji.opacity
-        save()
-    }
-    
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
-        emojiIntensities.move(fromOffsets: source, toOffset: destination)
-        for (index, emoji) in emojiIntensities.enumerated() {
-            emoji.order = index
-        }
-        save()
+        reloadEmojiIntensities()
     }
     
     private func save() {

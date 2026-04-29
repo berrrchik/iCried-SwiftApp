@@ -32,8 +32,5 @@ protocol EmojiRepositoryProtocol: AnyObject {
     var emojiIntensities: [EmojiIntensity] { get }
     
     func reloadEmojiIntensities()
-    func addEmojiIntensity(_ emoji: EmojiIntensity)
-    func removeEmojiIntensity(at index: Int)
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int)
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int)
+    func ensureDefaultEmojiScale()
 }

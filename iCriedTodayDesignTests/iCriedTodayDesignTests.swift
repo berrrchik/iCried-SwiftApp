@@ -236,18 +236,14 @@ final class iCriedTodayDesignTests: XCTestCase {
         let manager = TearDataManager(modelContext: ModelContext(container))
         let workTag = TagItem(name: "#Phase5Work")
         let familyTag = TagItem(name: "#Phase5Family")
-        let lightEmoji = EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 90)
-        let deepEmoji = EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 91)
         
         manager.addTag(workTag.name)
         manager.addTag(familyTag.name)
-        manager.addEmojiIntensity(lightEmoji)
-        manager.addEmojiIntensity(deepEmoji)
         
         let savedWorkTag = try XCTUnwrap(manager.tags.first(where: { $0.name == workTag.name }))
         let savedFamilyTag = try XCTUnwrap(manager.tags.first(where: { $0.name == familyTag.name }))
-        let savedLightEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == lightEmoji.emoji }))
-        let savedDeepEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == deepEmoji.emoji }))
+        let savedLightEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == "🥲" }))
+        let savedDeepEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == "😭" }))
         
         manager.addEntry(makeEntry(year: 2040, month: 4, day: 1, note: "Work April", emoji: savedDeepEmoji, tag: savedWorkTag))
         manager.addEntry(makeEntry(year: 2040, month: 4, day: 2, note: "Family April", emoji: savedLightEmoji, tag: savedFamilyTag))
@@ -298,12 +294,9 @@ final class iCriedTodayDesignTests: XCTestCase {
     func testDiaryViewModelDeletesPendingEntry() throws {
         let container = try makeInMemoryContainer()
         let manager = TearDataManager(modelContext: ModelContext(container))
-        let emoji = EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 200)
-        
-        manager.addEmojiIntensity(emoji)
         manager.addTag("#DiaryDelete")
         let tag = try XCTUnwrap(manager.tags.first(where: { $0.name == "#DiaryDelete" }))
-        let savedEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == emoji.emoji }))
+        let savedEmoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == "😢" }))
         let entry = makeEntry(year: 2041, note: "Delete me", emoji: savedEmoji, tag: tag)
         manager.addEntry(entry)
         
@@ -349,39 +342,6 @@ final class iCriedTodayDesignTests: XCTestCase {
     }
     
     @MainActor
-    func testEmojiManagementViewModelSupportsEditMoveAndDeleteFlows() throws {
-        let container = try makeInMemoryContainer()
-        let manager = TearDataManager(modelContext: ModelContext(container))
-        let firstEmoji = EmojiIntensity(emoji: "🧪", color: .green, opacity: 0.7, order: 300)
-        let secondEmoji = EmojiIntensity(emoji: "🧫", color: .orange, opacity: 0.8, order: 301)
-        
-        manager.addEmojiIntensity(firstEmoji)
-        manager.addEmojiIntensity(secondEmoji)
-        
-        let viewModel = EmojiManagementViewModel(dataManager: manager)
-        let savedFirstEmoji = try XCTUnwrap(viewModel.emojiIntensities.first(where: { $0.emoji == firstEmoji.emoji }))
-        let savedSecondEmoji = try XCTUnwrap(viewModel.emojiIntensities.first(where: { $0.emoji == secondEmoji.emoji }))
-        
-        viewModel.presentEdit(for: savedFirstEmoji)
-        XCTAssertEqual(viewModel.emojiToEdit?.id, savedFirstEmoji.id)
-        viewModel.dismissEdit()
-        XCTAssertNil(viewModel.emojiToEdit)
-        
-        let fromIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedSecondEmoji.id }))
-        let toIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedFirstEmoji.id }))
-        viewModel.moveEmojis(from: IndexSet(integer: fromIndex), to: toIndex)
-        
-        let movedIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedSecondEmoji.id }))
-        XCTAssertLessThanOrEqual(movedIndex, toIndex)
-        
-        let deleteIndex = try XCTUnwrap(viewModel.emojiIntensities.firstIndex(where: { $0.id == savedFirstEmoji.id }))
-        viewModel.presentDelete(at: deleteIndex)
-        XCTAssertTrue(viewModel.showingDeleteAlert)
-        viewModel.confirmDelete()
-        
-        XCTAssertFalse(viewModel.emojiIntensities.contains { $0.id == savedFirstEmoji.id })
-    }
-    
     @MainActor
     func testRefreshDataReloadsEntriesFromStore() async throws {
         let container = try makeInMemoryContainer()
@@ -402,9 +362,7 @@ final class iCriedTodayDesignTests: XCTestCase {
         let container = try makeInMemoryContainer()
         let modelContext = ModelContext(container)
         let manager = TearDataManager(modelContext: modelContext)
-        let emoji = EmojiIntensity(emoji: "😶‍🌫️", color: .blue, opacity: 0.5, order: 99)
-        
-        manager.addEmojiIntensity(emoji)
+        let emoji = try XCTUnwrap(manager.emojiIntensities.first(where: { $0.emoji == "😢" }))
         manager.addTag("#Тест")
         
         guard let createdTag = manager.tags.first(where: { $0.name == "#Тест" }) else {
@@ -506,24 +464,15 @@ final class iCriedTodayDesignTests: XCTestCase {
     }
     
     @MainActor
-    func testEmojiRepositorySupportsAddEditDeleteAndReorder() throws {
+    func testEmojiRepositoryEnsuresDefaultScale() throws {
         let container = try makeInMemoryContainer()
         let repository = EmojiRepository(modelContext: ModelContext(container))
-        
-        repository.addEmojiIntensity(EmojiIntensity(emoji: "🥲", color: .blue, opacity: 0.4, order: 0))
-        repository.addEmojiIntensity(EmojiIntensity(emoji: "😢", color: .blue, opacity: 0.7, order: 1))
-        repository.addEmojiIntensity(EmojiIntensity(emoji: "😭", color: .blue, opacity: 1.0, order: 2))
-        
-        var updatedEmoji = EmojiIntensity(emoji: "😶", color: .red, opacity: 0.5, order: 1)
-        updatedEmoji.id = repository.emojiIntensities[1].id
-        repository.updateEmojiIntensity(updatedEmoji, at: 1)
-        XCTAssertEqual(repository.emojiIntensities[1].emoji, "😶")
-        
-        repository.moveEmojiIntensity(from: IndexSet(integer: 2), to: 0)
-        XCTAssertEqual(repository.emojiIntensities.first?.emoji, "😭")
-        
-        repository.removeEmojiIntensity(at: 1)
-        XCTAssertEqual(repository.emojiIntensities.count, 2)
+
+        repository.ensureDefaultEmojiScale()
+        XCTAssertEqual(repository.emojiIntensities.map(\.emoji), ["🥲", "😢", "😭"])
+
+        repository.ensureDefaultEmojiScale()
+        XCTAssertEqual(repository.emojiIntensities.count, 3)
     }
     
     private func makeEntry(

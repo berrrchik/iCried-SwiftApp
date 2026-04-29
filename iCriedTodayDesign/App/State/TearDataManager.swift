@@ -3,7 +3,7 @@ import SwiftData
 import Combine
 
 @MainActor
-final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataManaging, StatisticsDataManaging, TagDataManaging, EmojiDataManaging, EntryFormDataProviding, EntryDisplayProviding {
+final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataManaging, StatisticsDataManaging, TagDataManaging, EntryFormDataProviding, EntryDisplayProviding {
     private let entryRepository: any EntryRepositoryProtocol
     private let tagRepository: any TagRepositoryProtocol
     private let emojiRepository: any EmojiRepositoryProtocol
@@ -76,33 +76,6 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
         tagRepository.moveTag(from: source, to: destination)
         updateAnalyzer()
         debugLog("Теги перемещены")
-    }
-    
-    // MARK: - Emoji Management
-    
-    func addEmojiIntensity(_ emoji: EmojiIntensity) {
-        emojiRepository.addEmojiIntensity(emoji)
-        updateAnalyzer()
-        debugLog("Добавлен эмодзи: \(emoji.emoji)")
-    }
-    
-    func removeEmojiIntensity(at index: Int) {
-        let emoji = emojiIntensities[index]
-        emojiRepository.removeEmojiIntensity(at: index)
-        updateAnalyzer()
-        debugLog("Удалён эмодзи: \(emoji.emoji)")
-    }
-    
-    func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
-        emojiRepository.updateEmojiIntensity(updatedEmoji, at: index)
-        updateAnalyzer()
-        debugLog("Обновлён эмодзи: \(updatedEmoji.emoji)")
-    }
-    
-    func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
-        emojiRepository.moveEmojiIntensity(from: source, to: destination)
-        updateAnalyzer()
-        debugLog("Эмодзи перемещены")
     }
     
     // MARK: - Data Analysis
