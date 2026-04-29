@@ -2,11 +2,14 @@ import SwiftUI
 import SwiftData
 
 struct AddTearView: View {
-    @Bindable var dataManager: TearDataManager
+    let availableTags: [TagItem]
+    let availableEmojiIntensities: [EmojiIntensity]
+    let onSave: (TearEntry) -> Void
     
     var body: some View {
         TearFormView(
-            dataManager: dataManager,
+            availableTags: availableTags,
+            availableEmojiIntensities: availableEmojiIntensities,
             title: "Добавить запись",
             onSave: { newDate, newEmojiId, newTagId, newNote in
                 let newEntry = TearEntry(
@@ -15,12 +18,17 @@ struct AddTearView: View {
                     tagId: newTagId,
                     note: newNote
                 )
-                dataManager.addEntry(newEntry)
+                onSave(newEntry)
             }
         )
     }
 }
 
 #Preview {
-    AddTearView(dataManager: makePreviewDataManager())
+    let previewManager = makePreviewDataManager()
+    AddTearView(
+        availableTags: previewManager.tags,
+        availableEmojiIntensities: previewManager.emojiIntensities,
+        onSave: { _ in }
+    )
 }

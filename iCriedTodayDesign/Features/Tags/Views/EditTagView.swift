@@ -2,10 +2,10 @@ import SwiftUI
 import SwiftData
 
 struct EditTagView: View {
-    @Bindable var dataManager: TearDataManager
     @Environment(\.dismiss) var dismiss
     @Binding var isPresented: Bool
     var tag: TagItem
+    let onSave: (UUID, String) -> Void
     @State private var editedTag = ""
     
     var body: some View {
@@ -46,7 +46,7 @@ struct EditTagView: View {
     private func saveTag() {
         let updatedTag = editedTag.trimmingCharacters(in: .whitespaces)
         if updatedTag.count >= 2 {
-            dataManager.updateTag(withId: tag.id, newName: updatedTag)
+            onSave(tag.id, updatedTag)
             isPresented = false
         }
     }

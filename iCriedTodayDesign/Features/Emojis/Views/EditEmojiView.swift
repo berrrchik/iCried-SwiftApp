@@ -2,19 +2,21 @@ import SwiftUI
 import SwiftData
 
 struct EditEmojiView: View {
-    @Bindable var dataManager: TearDataManager
     @Environment(\.dismiss) var dismiss
     @Binding var isPresented: Bool
     var emojiIntensity: EmojiIntensity
+    let existingEmojiIntensities: [EmojiIntensity]
+    let onSave: (EmojiIntensity, Int) -> Void
     
     @State private var emoji: String
     @State private var color: Color
     @State private var opacity: Double
     
-    init(dataManager: TearDataManager, isPresented: Binding<Bool>, emojiIntensity: EmojiIntensity) {
-        self.dataManager = dataManager
+    init(isPresented: Binding<Bool>, emojiIntensity: EmojiIntensity, existingEmojiIntensities: [EmojiIntensity], onSave: @escaping (EmojiIntensity, Int) -> Void) {
         self._isPresented = isPresented
         self.emojiIntensity = emojiIntensity
+        self.existingEmojiIntensities = existingEmojiIntensities
+        self.onSave = onSave
         
         _emoji = State(initialValue: emojiIntensity.emoji)
         _color = State(initialValue: emojiIntensity.color)
@@ -103,8 +105,8 @@ struct EditEmojiView: View {
     private func saveChanges() {
         var updatedEmoji = EmojiIntensity(emoji: emoji, color: color, opacity: opacity)
         updatedEmoji.id = emojiIntensity.id
-        if let index = dataManager.emojiIntensities.firstIndex(where: { $0.id == emojiIntensity.id }) {
-            dataManager.updateEmojiIntensity(updatedEmoji, at: index)
+        if let index = existingEmojiIntensities.firstIndex(where: { $0.id == emojiIntensity.id }) {
+            onSave(updatedEmoji, index)
             isPresented = false
         }
     }
@@ -117,4 +119,3 @@ struct EditEmojiView: View {
 //        return EditEmojiView(dataManager: mockDataManager, isPresented: .constant(true), emojiIntensity: mockEmojiIntensity)
 //    }
 //}
-

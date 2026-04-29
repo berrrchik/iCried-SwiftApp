@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct AddEmojiView: View {
-    @Bindable var dataManager: TearDataManager
     @Binding var isPresented: Bool
+    let onAdd: (EmojiIntensity) -> Void
     @State private var newEmoji = ""
     @State private var selectedColor = Color.blue
     @State private var opacity: Double = 1.0
@@ -82,7 +82,7 @@ struct AddEmojiView: View {
     
     private func addEmoji() {
         let emoji = EmojiIntensity(emoji: newEmoji, color: selectedColor, opacity: opacity)
-        dataManager.addEmojiIntensity(emoji)
+        onAdd(emoji)
         isPresented = false
     }
 }

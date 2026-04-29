@@ -2,8 +2,8 @@ import SwiftUI
 import SwiftData
 
 struct AddTagView: View {
-    @Bindable var dataManager: TearDataManager
     @Binding var isPresented: Bool
+    let onAdd: (String) -> Void
     @State private var newTag = ""
     
     var body: some View {
@@ -45,7 +45,7 @@ struct AddTagView: View {
     private func addTag() {
         let tag = newTag.trimmingCharacters(in: .whitespaces)
         if tag.count >= 2 {
-            dataManager.addTag(tag)
+            onAdd(tag)
             isPresented = false
         }
     }

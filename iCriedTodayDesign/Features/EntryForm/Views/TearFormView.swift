@@ -8,7 +8,8 @@ struct TearFormView: View {
     let title: String
     let onSave: (Date, EmojiIntensity?, TagItem?, String) -> Void
     
-    init(dataManager: TearDataManager,
+    init(availableTags: [TagItem],
+         availableEmojiIntensities: [EmojiIntensity],
          selectedDate: Date = Date(),
          selectedEmoji: EmojiIntensity? = nil,
          selectedTag: TagItem? = nil,
@@ -17,8 +18,8 @@ struct TearFormView: View {
         onSave: @escaping (Date, EmojiIntensity?, TagItem?, String) -> Void) {
         _viewModel = StateObject(
             wrappedValue: TearFormViewModel(
-                availableTags: dataManager.tags,
-                availableEmojiIntensities: dataManager.emojiIntensities,
+                availableTags: availableTags,
+                availableEmojiIntensities: availableEmojiIntensities,
                 selectedDate: selectedDate,
                 selectedEmoji: selectedEmoji,
                 selectedTag: selectedTag,

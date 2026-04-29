@@ -2,29 +2,22 @@ import SwiftUI
 import SwiftData
 
 struct EditTearView: View {
-    @Bindable var dataManager: TearDataManager
+    let availableTags: [TagItem]
+    let availableEmojiIntensities: [EmojiIntensity]
     let entry: TearEntry
+    let onSave: (UUID, Date, EmojiIntensity?, TagItem?, String) -> Void
     
     var body: some View {
         TearFormView(
-            dataManager: dataManager,
+            availableTags: availableTags,
+            availableEmojiIntensities: availableEmojiIntensities,
             selectedDate: entry.date,
             selectedEmoji: entry.emojiId,
             selectedTag: entry.tagId,
             note: entry.note,
             title: "Редактировать",
             onSave: { newDate, newEmojiId, newTagId, newNote in
-                do {
-                    try dataManager.updateEntry(
-                        withId: entry.id,
-                        newDate: newDate,
-                        newEmojiId: newEmojiId,
-                        newTagId: newTagId,
-                        newNote: newNote
-                    )
-                } catch {
-                    debugLog("Ошибка обновления записи: \(error)")
-                }
+                onSave(entry.id, newDate, newEmojiId, newTagId, newNote)
             }
         )
     }
