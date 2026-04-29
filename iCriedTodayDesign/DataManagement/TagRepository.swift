@@ -1,30 +1,26 @@
 import Foundation
 import SwiftData
 
-@Observable
-class TagManager {
+@MainActor
+final class TagRepository: TagRepositoryProtocol {
     private let modelContext: ModelContext
     private(set) var tags: [TagItem] = []
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        loadTags()
+        reloadTags()
     }
     
-    private func loadTags() {
+    func reloadTags() {
         do {
             let descriptor = FetchDescriptor<TagItem>(sortBy: [.init(\.order, order: .forward)])
             let newTags = try modelContext.fetch(descriptor)
             debugLog("Загружено тегов из базы: \(newTags.count)")
             tags = newTags
+            debugLog("Тегов после перезагрузки: \(tags.count)")
         } catch {
             debugLog("Ошибка при загрузке тегов: \(error)")
         }
-    }
-    
-    func reloadTags() {
-        loadTags()
-        debugLog("Тегов после перезагрузки: \(tags.count)")
     }
     
     func addTag(_ name: String) {
@@ -40,12 +36,30 @@ class TagManager {
         }
     }
     
-    func removeTag(_ tagId: UUID) {
-        if let tag = tags.first(where: { $0.id == tagId }) {
-            modelContext.delete(tag)
-            tags.removeAll { $0.id == tagId }
-            save()
+    func updateTag(withId tagId: UUID, newName: String) {
+        let normalizedName = newName.trimmingCharacters(in: .whitespaces)
+        guard normalizedName.count >= 2 else { return }
+        
+        guard let tag = tags.first(where: { $0.id == tagId }) else { return }
+        let hasConflict = tags.contains { existing in
+            existing.id != tagId && existing.name.lowercased() == normalizedName.lowercased()
         }
+        
+        guard !hasConflict else {
+            debugLog("Тег '\(normalizedName)' уже существует")
+            return
+        }
+        
+        tag.name = normalizedName
+        save()
+    }
+    
+    func removeTag(_ tagId: UUID) {
+        guard let tag = tags.first(where: { $0.id == tagId }) else { return }
+        
+        modelContext.delete(tag)
+        tags.removeAll { $0.id == tagId }
+        save()
     }
     
     func moveTag(from source: IndexSet, to destination: Int) {
@@ -56,7 +70,7 @@ class TagManager {
         save()
     }
     
-    func save() {
+    private func save() {
         do {
             try modelContext.save()
         } catch {

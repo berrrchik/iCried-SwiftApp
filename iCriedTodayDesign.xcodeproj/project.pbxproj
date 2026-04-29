@@ -23,13 +23,14 @@
 		5739683A2D749EF100679200 /* EditEmojiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 573968392D749EF100679200 /* EditEmojiView.swift */; };
 		577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75B92D9C88650052ECF3 /* EmptyStateView.swift */; };
 		5810A1B52E16A0010097709F /* TearCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5810A1B42E16A0010097709F /* TearCard.swift */; };
-		577C75C22D9C90A30052ECF3 /* EntryManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C12D9C90A10052ECF3 /* EntryManager.swift */; };
-		577C75C42D9C90AF0052ECF3 /* TagManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C32D9C90A90052ECF3 /* TagManager.swift */; };
-		577C75C62D9C90B40052ECF3 /* EmojiManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C52D9C90B20052ECF3 /* EmojiManager.swift */; };
+		58A100012E1700010097709F /* RepositoryProtocols.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101012E1700010097709F /* RepositoryProtocols.swift */; };
+		58A100022E1700010097709F /* EntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101022E1700010097709F /* EntryRepository.swift */; };
+		58A100032E1700010097709F /* TagRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101032E1700010097709F /* TagRepository.swift */; };
+		58A100042E1700010097709F /* EmojiRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101042E1700010097709F /* EmojiRepository.swift */; };
+		58A100052E1700010097709F /* InitialDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58A101052E1700010097709F /* InitialDataSeeder.swift */; };
 		577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */; };
 		577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */; };
 		5810A1B72E16A0320097709F /* DebugLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5810A1B62E16A0320097709F /* DebugLog.swift */; };
-		577C75D02D9E91300052ECF3 /* DataLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75CF2D9E912D0052ECF3 /* DataLoader.swift */; };
 		577C75D22D9E92290052ECF3 /* DuplicateRemover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */; };
 		57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57AE18F52D66782D002A3FDB /* EditTearView.swift */; };
 		57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 57DE81602D6627FD0097709F /* iCriedTodayDesignApp.swift */; };
@@ -81,13 +82,14 @@
 		573968392D749EF100679200 /* EditEmojiView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditEmojiView.swift; sourceTree = "<group>"; };
 		577C75B92D9C88650052ECF3 /* EmptyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmptyStateView.swift; sourceTree = "<group>"; };
 		5810A1B42E16A0010097709F /* TearCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TearCard.swift; sourceTree = "<group>"; };
-		577C75C12D9C90A10052ECF3 /* EntryManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryManager.swift; sourceTree = "<group>"; };
-		577C75C32D9C90A90052ECF3 /* TagManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagManager.swift; sourceTree = "<group>"; };
-		577C75C52D9C90B20052ECF3 /* EmojiManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiManager.swift; sourceTree = "<group>"; };
+		58A101012E1700010097709F /* RepositoryProtocols.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryProtocols.swift; sourceTree = "<group>"; };
+		58A101022E1700010097709F /* EntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EntryRepository.swift; sourceTree = "<group>"; };
+		58A101032E1700010097709F /* TagRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagRepository.swift; sourceTree = "<group>"; };
+		58A101042E1700010097709F /* EmojiRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmojiRepository.swift; sourceTree = "<group>"; };
+		58A101052E1700010097709F /* InitialDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InitialDataSeeder.swift; sourceTree = "<group>"; };
 		577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataAnalyzer.swift; sourceTree = "<group>"; };
 		577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataManagerProtocol.swift; sourceTree = "<group>"; };
 		5810A1B62E16A0320097709F /* DebugLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLog.swift; sourceTree = "<group>"; };
-		577C75CF2D9E912D0052ECF3 /* DataLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataLoader.swift; sourceTree = "<group>"; };
 		577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DuplicateRemover.swift; sourceTree = "<group>"; };
 		57AE18F52D66782D002A3FDB /* EditTearView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditTearView.swift; sourceTree = "<group>"; };
 		57DE815D2D6627FD0097709F /* iCriedTodayDesign.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iCriedTodayDesign.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +133,22 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		58A102012E1700010097709F /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				58A102022E1700010097709F /* Contracts */,
+			);
+			path = Domain;
+			sourceTree = "<group>";
+		};
+		58A102022E1700010097709F /* Contracts */ = {
+			isa = PBXGroup;
+			children = (
+				58A101012E1700010097709F /* RepositoryProtocols.swift */,
+			);
+			path = Contracts;
+			sourceTree = "<group>";
+		};
 		571049162D899397002AA105 /* Tags */ = {
 			isa = PBXGroup;
 			children = (
@@ -178,12 +196,12 @@
 			isa = PBXGroup;
 			children = (
 				577C75D12D9E92270052ECF3 /* DuplicateRemover.swift */,
-				577C75CF2D9E912D0052ECF3 /* DataLoader.swift */,
+				58A101052E1700010097709F /* InitialDataSeeder.swift */,
 				577C75C72D9C90BD0052ECF3 /* DataAnalyzer.swift */,
 				5810A1B62E16A0320097709F /* DebugLog.swift */,
-				577C75C52D9C90B20052ECF3 /* EmojiManager.swift */,
-				577C75C32D9C90A90052ECF3 /* TagManager.swift */,
-				577C75C12D9C90A10052ECF3 /* EntryManager.swift */,
+				58A101042E1700010097709F /* EmojiRepository.swift */,
+				58A101032E1700010097709F /* TagRepository.swift */,
+				58A101022E1700010097709F /* EntryRepository.swift */,
 				577C75CB2D9E907B0052ECF3 /* DataManagerProtocol.swift */,
 				57DE81922D66651A0097709F /* TearDataManager.swift */,
 			);
@@ -215,6 +233,7 @@
 			children = (
 				570AD3712D9738A700E68F8E /* Info.plist */,
 				570AD3702D9734C300E68F8E /* iCriedTodayDesign.entitlements */,
+				58A102012E1700010097709F /* Domain */,
 				577C75BE2D9C90490052ECF3 /* DataManagement */,
 				57DE81942D66651A0097709F /* Models */,
 				57DE818D2D66651A0097709F /* Views */,
@@ -409,7 +428,7 @@
 				5739682B2D70C03500679200 /* TearFormView.swift in Sources */,
 				577C75D22D9E92290052ECF3 /* DuplicateRemover.swift in Sources */,
 				572787BE2D80B56B00639424 /* TagItem.swift in Sources */,
-				577C75C62D9C90B40052ECF3 /* EmojiManager.swift in Sources */,
+				58A100042E1700010097709F /* EmojiRepository.swift in Sources */,
 				571049112D874CC0002AA105 /* AddTagView.swift in Sources */,
 				57AE18F62D66782D002A3FDB /* EditTearView.swift in Sources */,
 				5739682A2D70C03500679200 /* AddTearView.swift in Sources */,
@@ -418,10 +437,11 @@
 				57DE81972D66651A0097709F /* StatisticsView.swift in Sources */,
 				5739683A2D749EF100679200 /* EditEmojiView.swift in Sources */,
 				573968362D749B1300679200 /* EmojiIntensity.swift in Sources */,
-				577C75C42D9C90AF0052ECF3 /* TagManager.swift in Sources */,
+				58A100032E1700010097709F /* TagRepository.swift in Sources */,
 				571049152D8755F1002AA105 /* AddEmojiView.swift in Sources */,
 				57DE819C2D66651A0097709F /* TearEntry.swift in Sources */,
 				577C75CC2D9E907D0052ECF3 /* DataManagerProtocol.swift in Sources */,
+				58A100012E1700010097709F /* RepositoryProtocols.swift in Sources */,
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
@@ -429,10 +449,10 @@
 				577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */,
 				5810A1B72E16A0320097709F /* DebugLog.swift in Sources */,
 				5739682F2D70DE1200679200 /* FlowLayout.swift in Sources */,
-				577C75C22D9C90A30052ECF3 /* EntryManager.swift in Sources */,
+				58A100022E1700010097709F /* EntryRepository.swift in Sources */,
 				57DE81632D6627FD0097709F /* ContentView.swift in Sources */,
 				5810A1B92E16A11E0097709F /* PreviewSupport.swift in Sources */,
-				577C75D02D9E91300052ECF3 /* DataLoader.swift in Sources */,
+				58A100052E1700010097709F /* InitialDataSeeder.swift in Sources */,
 				573968342D70F12500679200 /* SettingsView.swift in Sources */,
 				57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */,
 				573968332D70F12500679200 /* TagManagementView.swift in Sources */,

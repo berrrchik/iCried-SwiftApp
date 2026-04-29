@@ -1,0 +1,106 @@
+import Foundation
+import SwiftData
+
+@MainActor
+final class EntryRepository: EntryRepositoryProtocol {
+    private let modelContext: ModelContext
+    private(set) var entries: [TearEntry] = []
+    
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+        reloadEntries()
+    }
+    
+    func reloadEntries() {
+        do {
+            let descriptor = FetchDescriptor<TearEntry>(sortBy: [.init(\.date, order: .reverse)])
+            let newEntries = try modelContext.fetch(descriptor)
+            debugLog("Загружено записей из базы: \(newEntries.count)")
+            entries = newEntries
+            debugLog("Записей после перезагрузки: \(entries.count)")
+        } catch {
+            debugLog("Ошибка при загрузке записей: \(error)")
+        }
+    }
+    
+    func addEntry(_ entry: TearEntry) {
+        let exists = entries.contains { existing in
+            Calendar.current.isDate(existing.date, equalTo: entry.date, toGranularity: .minute) &&
+            existing.emojiId == entry.emojiId &&
+            existing.tagId == entry.tagId &&
+            existing.note == entry.note
+        }
+        
+        if !exists {
+            modelContext.insert(entry)
+            entries.append(entry)
+            save()
+        } else {
+            debugLog("Запись уже существует, дубликат не добавлен")
+        }
+    }
+    
+    func deleteEntry(_ entry: TearEntry) {
+        modelContext.delete(entry)
+        entries.removeAll { $0.id == entry.id }
+        save()
+    }
+    
+    func updateEntry(
+        withId entryId: UUID,
+        newDate: Date,
+        newEmojiId: EmojiIntensity?,
+        newTagId: TagItem?,
+        newNote: String
+    ) throws {
+        let fetchDescriptor = FetchDescriptor<TearEntry>(predicate: #Predicate { $0.id == entryId })
+        
+        guard let existingEntry = try modelContext.fetch(fetchDescriptor).first else {
+            throw NSError(
+                domain: "EntryRepository",
+                code: 404,
+                userInfo: [NSLocalizedDescriptionKey: "Запись с id \(entryId) не найдена"]
+            )
+        }
+        
+        if let newEmojiId {
+            let emojiDescriptor = FetchDescriptor<EmojiIntensity>()
+            let allEmojis = try modelContext.fetch(emojiDescriptor)
+            if let emojiInContext = allEmojis.first(where: { $0.id == newEmojiId.id }) {
+                existingEntry.emojiId = emojiInContext
+            } else {
+                debugLog("Эмодзи с id \(newEmojiId.id) не найден в текущем контексте")
+            }
+        } else {
+            existingEntry.emojiId = nil
+        }
+        
+        if let newTagId {
+            let tagDescriptor = FetchDescriptor<TagItem>()
+            let allTags = try modelContext.fetch(tagDescriptor)
+            if let tagInContext = allTags.first(where: { $0.id == newTagId.id }) {
+                existingEntry.tagId = tagInContext
+            } else {
+                debugLog("Тег с id \(newTagId.id) не найден в текущем контексте")
+            }
+        } else {
+            existingEntry.tagId = nil
+        }
+        
+        existingEntry.date = newDate
+        existingEntry.note = newNote
+        save()
+        
+        if let index = entries.firstIndex(where: { $0.id == entryId }) {
+            entries[index] = existingEntry
+        }
+    }
+    
+    private func save() {
+        do {
+            try modelContext.save()
+        } catch {
+            debugLog("Ошибка при сохранении записей: \(error)")
+        }
+    }
+}

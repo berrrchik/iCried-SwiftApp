@@ -6,28 +6,30 @@ import SwiftUI
 @MainActor
 @Observable
 class TearDataManager: DataManagerProtocol {
-    private let modelContext: ModelContext
-    private let entryManager: TearEntryManager
-    private let tagManager: TagManager
-    private let emojiManager: EmojiIntensityManager
-    private let dataLoader: DataLoader
+    private let entryRepository: any EntryRepositoryProtocol
+    private let tagRepository: any TagRepositoryProtocol
+    private let emojiRepository: any EmojiRepositoryProtocol
+    private let initialDataSeeder: InitialDataSeeder
     private var dataAnalyzer: DataAnalyzer
     private var remoteChangeObserver: AnyCancellable?
     
     var refreshTrigger = UUID()
-    var entries: [TearEntry] { entryManager.entries }
-    var tags: [TagItem] { tagManager.tags }
-    var emojiIntensities: [EmojiIntensity] { emojiManager.emojiIntensities }
+    var entries: [TearEntry] { entryRepository.entries }
+    var tags: [TagItem] { tagRepository.tags }
+    var emojiIntensities: [EmojiIntensity] { emojiRepository.emojiIntensities }
     
     init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-        self.entryManager = TearEntryManager(modelContext: modelContext)
-        self.tagManager = TagManager(modelContext: modelContext)
-        self.emojiManager = EmojiIntensityManager(modelContext: modelContext)
-        self.dataLoader = DataLoader(modelContext: modelContext, emojiManager: emojiManager, tagManager: tagManager)
-        self.dataAnalyzer = DataAnalyzer(entries: entryManager.entries, tags: tagManager.tags, emojiIntensities: emojiManager.emojiIntensities)
+        self.entryRepository = EntryRepository(modelContext: modelContext)
+        self.tagRepository = TagRepository(modelContext: modelContext)
+        self.emojiRepository = EmojiRepository(modelContext: modelContext)
+        self.initialDataSeeder = InitialDataSeeder(emojiRepository: emojiRepository, tagRepository: tagRepository)
+        self.dataAnalyzer = DataAnalyzer(
+            entries: entryRepository.entries,
+            tags: tagRepository.tags,
+            emojiIntensities: emojiRepository.emojiIntensities
+        )
         
-        dataLoader.loadInitialData()
+        initialDataSeeder.seedIfNeeded()
         runInitialCleanup()
         updateAnalyzer()
         observeRemoteChanges()
@@ -36,19 +38,19 @@ class TearDataManager: DataManagerProtocol {
     // MARK: - Entry Management
     
     func addEntry(_ entry: TearEntry) {
-        entryManager.addEntry(entry)
+        entryRepository.addEntry(entry)
         updateAnalyzer()
         debugLog("Добавлена новая запись: \(entry.note)")
     }
     
     func deleteEntry(_ entry: TearEntry) {
-        entryManager.deleteEntry(entry)
+        entryRepository.deleteEntry(entry)
         updateAnalyzer()
         debugLog("Удалена запись: \(entry.note)")
     }
     
     func updateEntry(withId entryId: UUID, newDate: Date, newEmojiId: EmojiIntensity?, newTagId: TagItem?, newNote: String) throws {
-        try entryManager.updateEntry(withId: entryId, newDate: newDate, newEmojiId: newEmojiId, newTagId: newTagId, newNote: newNote)
+        try entryRepository.updateEntry(withId: entryId, newDate: newDate, newEmojiId: newEmojiId, newTagId: newTagId, newNote: newNote)
         updateAnalyzer()
         debugLog("Обновлена запись с id: \(entryId)")
     }
@@ -56,19 +58,25 @@ class TearDataManager: DataManagerProtocol {
     // MARK: - Tag Management
     
     func addTag(_ name: String) {
-        tagManager.addTag(name)
+        tagRepository.addTag(name)
         updateAnalyzer()
         debugLog("Добавлен тег: \(name)")
     }
     
+    func updateTag(withId tagId: UUID, newName: String) {
+        tagRepository.updateTag(withId: tagId, newName: newName)
+        updateAnalyzer()
+        debugLog("Обновлён тег с ID: \(tagId)")
+    }
+    
     func removeTag(_ tagId: UUID) {
-        tagManager.removeTag(tagId)
+        tagRepository.removeTag(tagId)
         updateAnalyzer()
         debugLog("Удалён тег с ID: \(tagId)")
     }
     
     func moveTag(from source: IndexSet, to destination: Int) {
-        tagManager.moveTag(from: source, to: destination)
+        tagRepository.moveTag(from: source, to: destination)
         updateAnalyzer()
         debugLog("Теги перемещены")
     }
@@ -76,47 +84,38 @@ class TearDataManager: DataManagerProtocol {
     // MARK: - Emoji Management
     
     func addEmojiIntensity(_ emoji: EmojiIntensity) {
-        emojiManager.addEmojiIntensity(emoji)
+        emojiRepository.addEmojiIntensity(emoji)
         updateAnalyzer()
         debugLog("Добавлен эмодзи: \(emoji.emoji)")
     }
     
     func removeEmojiIntensity(at index: Int) {
         let emoji = emojiIntensities[index]
-        emojiManager.removeEmojiIntensity(at: index)
+        emojiRepository.removeEmojiIntensity(at: index)
         updateAnalyzer()
         debugLog("Удалён эмодзи: \(emoji.emoji)")
     }
     
     func updateEmojiIntensity(_ updatedEmoji: EmojiIntensity, at index: Int) {
-        emojiManager.updateEmojiIntensity(updatedEmoji, at: index)
+        emojiRepository.updateEmojiIntensity(updatedEmoji, at: index)
         updateAnalyzer()
         debugLog("Обновлён эмодзи: \(updatedEmoji.emoji)")
     }
     
     func moveEmojiIntensity(from source: IndexSet, to destination: Int) {
-        emojiManager.moveEmojiIntensity(from: source, to: destination)
+        emojiRepository.moveEmojiIntensity(from: source, to: destination)
         updateAnalyzer()
         debugLog("Эмодзи перемещены")
-    }
-    
-    // MARK: - Persistence
-    
-    func save() {
-        do {
-            if modelContext.hasChanges {
-                try modelContext.save()
-            }
-            debugLog("Данные успешно сохранены в локальной базе")
-        } catch {
-            debugLog("Ошибка сохранения данных: \(error.localizedDescription)")
-        }
     }
     
     // MARK: - Data Analysis
     
     func updateAnalyzer() {
-        dataAnalyzer = DataAnalyzer(entries: entryManager.entries, tags: tagManager.tags, emojiIntensities: emojiManager.emojiIntensities)
+        dataAnalyzer = DataAnalyzer(
+            entries: entryRepository.entries,
+            tags: tagRepository.tags,
+            emojiIntensities: emojiRepository.emojiIntensities
+        )
         debugLog("Анализатор данных обновлён")
     }
     
@@ -152,10 +151,9 @@ class TearDataManager: DataManagerProtocol {
 
     private func runInitialCleanup() {
         let duplicateRemover = DuplicateRemover(
-            modelContext: modelContext,
-            entryManager: entryManager,
-            tagManager: tagManager,
-            emojiManager: emojiManager
+            entryRepository: entryRepository,
+            tagRepository: tagRepository,
+            emojiRepository: emojiRepository
         )
         
         duplicateRemover.removeDuplicates()
@@ -163,14 +161,14 @@ class TearDataManager: DataManagerProtocol {
         debugLog("Дубликаты удалены")
     }
 
-    private func reloadManagers() {
-        entryManager.reloadEntries()
-        tagManager.reloadTags()
-        emojiManager.reloadEmojiIntensities()
+    private func reloadRepositories() {
+        entryRepository.reloadEntries()
+        tagRepository.reloadTags()
+        emojiRepository.reloadEmojiIntensities()
     }
     
     private func reloadFromStore(reason: String) {
-        reloadManagers()
+        reloadRepositories()
         updateAnalyzer()
         refreshTrigger = UUID()
         debugLog("Данные обновлены из локального store: \(reason)")

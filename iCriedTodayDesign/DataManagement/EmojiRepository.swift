@@ -1,30 +1,26 @@
 import Foundation
 import SwiftData
 
-@Observable
-class EmojiIntensityManager {
+@MainActor
+final class EmojiRepository: EmojiRepositoryProtocol {
     private let modelContext: ModelContext
     private(set) var emojiIntensities: [EmojiIntensity] = []
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
-        loadEmojiIntensities()
+        reloadEmojiIntensities()
     }
     
-    private func loadEmojiIntensities() {
+    func reloadEmojiIntensities() {
         do {
             let descriptor = FetchDescriptor<EmojiIntensity>(sortBy: [.init(\.order, order: .forward)])
             let newEmojis = try modelContext.fetch(descriptor)
             debugLog("Загружено эмодзи из базы: \(newEmojis.count)")
             emojiIntensities = newEmojis
+            debugLog("Эмодзи после перезагрузки: \(emojiIntensities.count)")
         } catch {
             debugLog("Ошибка при загрузке эмодзи: \(error)")
         }
-    }
-    
-    func reloadEmojiIntensities() {
-        loadEmojiIntensities()
-        debugLog("Эмодзи после перезагрузки: \(emojiIntensities.count)")
     }
     
     func addEmojiIntensity(_ emoji: EmojiIntensity) {
@@ -63,7 +59,7 @@ class EmojiIntensityManager {
         save()
     }
     
-    func save() {
+    private func save() {
         do {
             try modelContext.save()
         } catch {
