@@ -46,8 +46,7 @@ struct EditTagView: View {
     private func saveTag() {
         let updatedTag = editedTag.trimmingCharacters(in: .whitespaces)
         if updatedTag.count >= 2 {
-            tag.name = updatedTag
-            dataManager.save()
+            dataManager.updateTag(withId: tag.id, newName: updatedTag)
             isPresented = false
         }
     }
