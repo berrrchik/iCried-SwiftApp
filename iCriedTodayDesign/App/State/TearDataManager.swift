@@ -116,6 +116,44 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
     func statisticsSnapshot(for filter: StatisticsFilter) -> StatisticsSnapshot {
         dataAnalyzer.statisticsSnapshot(filter: filter)
     }
+    func entriesForDay(_ date: Date) -> [TearEntry] {
+        let statisticsEngine = StatisticsEngine(
+            entries: entries,
+            tags: tags,
+            emojiIntensities: emojiIntensities
+        )
+        return statisticsEngine.entriesForDay(date)
+    }
+    func buildExportSummary(filter: StatisticsFilter) -> ExportSummary {
+        let snapshot = statisticsSnapshot(for: filter)
+        let topTags = snapshot.tagItems
+            .filter { $0.count > 0 }
+            .sorted { $0.count > $1.count }
+            .prefix(5)
+            .map { (name: $0.name, count: $0.count) }
+        let emojiStats = snapshot.emojiItems
+            .filter { $0.count > 0 }
+            .sorted { $0.count > $1.count }
+            .map { (emoji: $0.emoji, count: $0.count) }
+
+        let periodTitle: String
+        if let month = filter.selectedMonth {
+            periodTitle = month.formatted(.dateTime.month(.wide).year().locale(Locale(identifier: "ru_RU")))
+        } else {
+            periodTitle = "\(filter.year) год"
+        }
+
+        return ExportSummary(
+            periodTitle: periodTitle,
+            totalEntries: snapshot.filteredEntriesCount,
+            topTags: Array(topTags),
+            emojiStats: emojiStats,
+            heatmapSnapshot: nil
+        )
+    }
+    func buildInsightSummary(type: InsightType, filter: StatisticsFilter) -> InsightSummary? {
+        nil
+    }
     func selectedMonthMatches(_ date: Date, selectedMonth: Date?) -> Bool {
         dataAnalyzer.selectedMonthMatches(date, selectedMonth: selectedMonth)
     }

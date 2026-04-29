@@ -1,4 +1,5 @@
 import Foundation
+import UIKit
 
 struct DiarySection: Identifiable {
     let monthStart: Date
@@ -44,4 +45,43 @@ struct StatisticsSnapshot {
     let monthPoints: [StatisticsMonthPoint]
     let emojiItems: [EmojiStatItem]
     let tagItems: [TagStatItem]
+}
+
+struct HeatmapDaySummary: Identifiable {
+    let id: UUID
+    let date: Date
+    let entryCount: Int
+    let dominantEmojiID: UUID?
+    let intensityScore: Double
+}
+
+enum HeatmapDisplayMode {
+    case monthly
+    case yearly
+}
+
+struct ExportSummary {
+    let periodTitle: String
+    let totalEntries: Int
+    let topTags: [(name: String, count: Int)]
+    let emojiStats: [(emoji: String, count: Int)]
+    let heatmapSnapshot: UIImage?
+}
+
+enum InsightType: CaseIterable, Identifiable {
+    case thisMonth
+    case topTrigger
+    case mostUsedEmoji
+    case yearSummary
+
+    var id: Self { self }
+}
+
+struct InsightSummary {
+    let type: InsightType
+    let title: String
+    let primaryStat: String
+    let secondaryStat: String?
+    let emoji: String?
+    let accentColorHex: String?
 }

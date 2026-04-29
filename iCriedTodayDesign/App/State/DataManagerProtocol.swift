@@ -46,6 +46,9 @@ protocol StatisticsDataManaging: AnyObject {
     func selectedMonthMatches(_ date: Date, selectedMonth: Date?) -> Bool
     func toggledMonthSelection(current: Date?, tappedDate: Date) -> Date?
     func cryingMomentsLabel(for count: Int) -> String
+    func entriesForDay(_ date: Date) -> [TearEntry]
+    func buildExportSummary(filter: StatisticsFilter) -> ExportSummary
+    func buildInsightSummary(type: InsightType, filter: StatisticsFilter) -> InsightSummary?
 }
 
 @MainActor

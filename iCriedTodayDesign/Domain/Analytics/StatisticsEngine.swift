@@ -40,6 +40,29 @@ struct StatisticsEngine {
     func totalEntriesForYear(_ year: Int) -> Int {
         entriesForYear(year).count
     }
+
+    func entriesForDay(_ date: Date) -> [TearEntry] {
+        let start = calendar.startOfDay(for: date)
+        guard let end = calendar.date(byAdding: .day, value: 1, to: start) else {
+            return []
+        }
+
+        return entries.filter { $0.date >= start && $0.date < end }
+    }
+
+    func entriesGroupedByDay(year: Int, month: Int? = nil) -> [Date: [TearEntry]] {
+        let pool: [TearEntry]
+        if let month {
+            pool = entries.filter {
+                calendar.component(.year, from: $0.date) == year &&
+                calendar.component(.month, from: $0.date) == month
+            }
+        } else {
+            pool = entries.filter { calendar.component(.year, from: $0.date) == year }
+        }
+
+        return Dictionary(grouping: pool) { calendar.startOfDay(for: $0.date) }
+    }
     
     func emojiStatistics(for year: Int, tagIDs: Set<UUID> = []) -> [EmojiStatItem] {
         let yearEntries = entriesForYear(year, tagIDs: tagIDs)
