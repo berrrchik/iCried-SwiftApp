@@ -77,6 +77,47 @@ enum InsightType: CaseIterable, Identifiable {
     var id: Self { self }
 }
 
+extension InsightType {
+    var displayTitle: String {
+        switch self {
+        case .thisMonth:
+            return "Этот месяц"
+        case .topTrigger:
+            return "Топ причина"
+        case .mostUsedEmoji:
+            return "Самый частый эмодзи"
+        case .yearSummary:
+            return "Год в целом"
+        }
+    }
+
+    var displaySubtitle: String {
+        switch self {
+        case .thisMonth:
+            return "Сравнение с прошлым месяцем"
+        case .topTrigger:
+            return "Самый частый тег"
+        case .mostUsedEmoji:
+            return "Эмодзи с наибольшим числом записей"
+        case .yearSummary:
+            return "Итог за год"
+        }
+    }
+
+    var systemImageName: String {
+        switch self {
+        case .thisMonth:
+            return "calendar"
+        case .topTrigger:
+            return "tag"
+        case .mostUsedEmoji:
+            return "face.smiling"
+        case .yearSummary:
+            return "chart.bar"
+        }
+    }
+}
+
 struct InsightSummary {
     let type: InsightType
     let title: String

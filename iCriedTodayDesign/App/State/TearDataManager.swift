@@ -156,7 +156,12 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
         )
     }
     func buildInsightSummary(type: InsightType, filter: StatisticsFilter) -> InsightSummary? {
-        nil
+        let engine = InsightsEngine(
+            entries: entries,
+            tags: tags,
+            emojiIntensities: emojiIntensities
+        )
+        return engine.generateInsight(type: type, filter: filter)
     }
     func selectedMonthMatches(_ date: Date, selectedMonth: Date?) -> Bool {
         dataAnalyzer.selectedMonthMatches(date, selectedMonth: selectedMonth)

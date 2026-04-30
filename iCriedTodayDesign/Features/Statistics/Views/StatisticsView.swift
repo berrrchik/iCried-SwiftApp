@@ -4,13 +4,11 @@ import Charts
 struct StatisticsView: View {
     @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: StatisticsViewModel
-    @StateObject private var exportViewModel: ExportViewModel
     @State private var showingHeatmap = false
     
     init(dataManager: TearDataManager) {
         self.dataManager = dataManager
         _viewModel = StateObject(wrappedValue: StatisticsViewModel(dataManager: dataManager))
-        _exportViewModel = StateObject(wrappedValue: ExportViewModel(dataManager: dataManager))
     }
     
     var body: some View {
@@ -63,37 +61,12 @@ struct StatisticsView: View {
                         .accessibilityLabel("Открыть календарь")
                         .accessibilityIdentifier("statistics_heatmap_button")
                     }
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        ExportMenu(
-                            onExportPDF: {
-                                Task { await exportViewModel.exportPDF(filter: currentFilter) }
-                            },
-                            onExportCSV: {
-                                Task { await exportViewModel.exportCSV(filter: currentFilter) }
-                            }
-                        )
-                        .disabled(viewModel.isEmpty)
-                    }
                 }
             }
         }
         .navigationTitle("Статистика")
-        .overlay {
-            if exportViewModel.isExporting {
-                ProgressView("Создаём файл…")
-                    .padding()
-                    .background(RoundedRectangle(cornerRadius: 12).fill(.regularMaterial))
-            }
-        }
         .sheet(isPresented: $showingHeatmap) {
             HeatmapView(dataManager: dataManager)
-        }
-        .sheet(isPresented: $exportViewModel.showingShareSheet, onDismiss: {
-            exportViewModel.cleanupExportFile()
-        }) {
-            if let url = exportViewModel.exportURL {
-                ShareSheet(activityItems: [url])
-            }
         }
         .sheet(isPresented: $viewModel.showingAddTear) {
             AddTearView(
@@ -111,17 +84,6 @@ struct StatisticsView: View {
             }
         } message: {
             Text("Это действие нельзя отменить")
-        }
-        .alert(
-            "Ошибка экспорта",
-            isPresented: Binding(
-                get: { exportViewModel.exportError != nil },
-                set: { if !$0 { exportViewModel.exportError = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(exportViewModel.exportError?.localizedDescription ?? "")
         }
         .onAppear {
             viewModel.syncFromDataManager()
@@ -252,12 +214,4 @@ struct StatisticsView: View {
         viewModel.toggleMonth(tappedDate)
     }
 
-    private var currentFilter: StatisticsFilter {
-        StatisticsFilter(
-            year: viewModel.selectedYear,
-            selectedMonth: viewModel.selectedMonth,
-            selectedEmojiID: viewModel.selectedEmojiID,
-            selectedTagIDs: viewModel.selectedTagIDs
-        )
-    }
 }

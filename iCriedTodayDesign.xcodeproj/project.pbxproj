@@ -60,6 +60,11 @@
 		60B100022E1D00010097709F /* ExportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101022E1D00010097709F /* ExportViewModel.swift */; };
 		60B100032E1D00010097709F /* ExportMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101032E1D00010097709F /* ExportMenu.swift */; };
 		60B100042E1D00010097709F /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101042E1D00010097709F /* ShareSheet.swift */; };
+		60C100012E1E00010097709F /* InsightsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C101012E1E00010097709F /* InsightsEngine.swift */; };
+		60C100022E1E00010097709F /* CardRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C101022E1E00010097709F /* CardRenderer.swift */; };
+		60C100032E1E00010097709F /* ShareCardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C101032E1E00010097709F /* ShareCardViewModel.swift */; };
+		60C100042E1E00010097709F /* CardTemplateSelector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C101042E1E00010097709F /* CardTemplateSelector.swift */; };
+		60C100052E1E00010097709F /* InsightCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60C101052E1E00010097709F /* InsightCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -138,6 +143,11 @@
 		60B101022E1D00010097709F /* ExportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportViewModel.swift; sourceTree = "<group>"; };
 		60B101032E1D00010097709F /* ExportMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportMenu.swift; sourceTree = "<group>"; };
 		60B101042E1D00010097709F /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		60C101012E1E00010097709F /* InsightsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightsEngine.swift; sourceTree = "<group>"; };
+		60C101022E1E00010097709F /* CardRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardRenderer.swift; sourceTree = "<group>"; };
+		60C101032E1E00010097709F /* ShareCardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCardViewModel.swift; sourceTree = "<group>"; };
+		60C101042E1E00010097709F /* CardTemplateSelector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardTemplateSelector.swift; sourceTree = "<group>"; };
+		60C101052E1E00010097709F /* InsightCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InsightCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -295,9 +305,19 @@
 				58A102032E1800010097709F /* Analytics */,
 				58A102022E1700010097709F /* Contracts */,
 				60B102012E1D00010097709F /* Export */,
+				60C102012E1E00010097709F /* Insights */,
 				57DE81942D66651A0097709F /* Models */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		60C102012E1E00010097709F /* Insights */ = {
+			isa = PBXGroup;
+			children = (
+				60C101022E1E00010097709F /* CardRenderer.swift */,
+				60C101012E1E00010097709F /* InsightsEngine.swift */,
+			);
+			path = Insights;
 			sourceTree = "<group>";
 		};
 		60B102012E1D00010097709F /* Export */ = {
@@ -391,6 +411,7 @@
 				58A1010B2E1900010097709F /* StatisticsViewModel.swift */,
 				60B101022E1D00010097709F /* ExportViewModel.swift */,
 				60A101022E1C00010097709F /* HeatmapViewModel.swift */,
+				60C101032E1E00010097709F /* ShareCardViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -398,10 +419,12 @@
 		60A102202E1C00010097709F /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				60C101042E1E00010097709F /* CardTemplateSelector.swift */,
 				60B101032E1D00010097709F /* ExportMenu.swift */,
 				60A101052E1C00010097709F /* HeatmapDayCell.swift */,
 				60A101062E1C00010097709F /* HeatmapLegend.swift */,
 				60A101042E1C00010097709F /* HeatmapMonthGrid.swift */,
+				60C101052E1E00010097709F /* InsightCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -664,6 +687,7 @@
 				5739682A2D70C03500679200 /* AddTearView.swift in Sources */,
 				58A100062E1800010097709F /* AnalyticsModels.swift in Sources */,
 				60A100012E1C00010097709F /* HeatmapEngine.swift in Sources */,
+				60C100022E1E00010097709F /* CardRenderer.swift in Sources */,
 				60B100012E1D00010097709F /* ReportGenerator.swift in Sources */,
 				58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */,
 				577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */,
@@ -683,6 +707,7 @@
 				58A1000B2E1900010097709F /* StatisticsViewModel.swift in Sources */,
 				60A100022E1C00010097709F /* HeatmapViewModel.swift in Sources */,
 				60B100022E1D00010097709F /* ExportViewModel.swift in Sources */,
+				60C100032E1E00010097709F /* ShareCardViewModel.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
 				577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */,
@@ -692,6 +717,8 @@
 				60A100062E1C00010097709F /* HeatmapLegend.swift in Sources */,
 				60B100032E1D00010097709F /* ExportMenu.swift in Sources */,
 				60A100042E1C00010097709F /* HeatmapMonthGrid.swift in Sources */,
+				60C100042E1E00010097709F /* CardTemplateSelector.swift in Sources */,
+				60C100052E1E00010097709F /* InsightCard.swift in Sources */,
 				58A100022E1700010097709F /* EntryRepository.swift in Sources */,
 				57DE81632D6627FD0097709F /* RootView.swift in Sources */,
 				5810A1B92E16A11E0097709F /* PreviewSupport.swift in Sources */,
@@ -702,6 +729,7 @@
 				60B100042E1D00010097709F /* ShareSheet.swift in Sources */,
 				60A100072E1C00010097709F /* YearButton.swift in Sources */,
 				57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */,
+				60C100012E1E00010097709F /* InsightsEngine.swift in Sources */,
 				573968332D70F12500679200 /* TagManagementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
