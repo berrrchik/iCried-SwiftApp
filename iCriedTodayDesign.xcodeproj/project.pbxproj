@@ -56,6 +56,10 @@
 		60A100052E1C00010097709F /* HeatmapDayCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A101052E1C00010097709F /* HeatmapDayCell.swift */; };
 		60A100062E1C00010097709F /* HeatmapLegend.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A101062E1C00010097709F /* HeatmapLegend.swift */; };
 		60A100072E1C00010097709F /* YearButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60A101072E1C00010097709F /* YearButton.swift */; };
+		60B100012E1D00010097709F /* ReportGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101012E1D00010097709F /* ReportGenerator.swift */; };
+		60B100022E1D00010097709F /* ExportViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101022E1D00010097709F /* ExportViewModel.swift */; };
+		60B100032E1D00010097709F /* ExportMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101032E1D00010097709F /* ExportMenu.swift */; };
+		60B100042E1D00010097709F /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60B101042E1D00010097709F /* ShareSheet.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -130,6 +134,10 @@
 		60A101052E1C00010097709F /* HeatmapDayCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapDayCell.swift; sourceTree = "<group>"; };
 		60A101062E1C00010097709F /* HeatmapLegend.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeatmapLegend.swift; sourceTree = "<group>"; };
 		60A101072E1C00010097709F /* YearButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YearButton.swift; sourceTree = "<group>"; };
+		60B101012E1D00010097709F /* ReportGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportGenerator.swift; sourceTree = "<group>"; };
+		60B101022E1D00010097709F /* ExportViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportViewModel.swift; sourceTree = "<group>"; };
+		60B101032E1D00010097709F /* ExportMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportMenu.swift; sourceTree = "<group>"; };
+		60B101042E1D00010097709F /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +193,7 @@
 				5739682D2D70DE1200679200 /* FlowLayout.swift */,
 				5739682E2D70DE1200679200 /* TagButton.swift */,
 				5810A1B42E16A0010097709F /* TearCard.swift */,
+				60B101042E1D00010097709F /* ShareSheet.swift */,
 				60A101072E1C00010097709F /* YearButton.swift */,
 			);
 			path = Components;
@@ -285,9 +294,18 @@
 			children = (
 				58A102032E1800010097709F /* Analytics */,
 				58A102022E1700010097709F /* Contracts */,
+				60B102012E1D00010097709F /* Export */,
 				57DE81942D66651A0097709F /* Models */,
 			);
 			path = Domain;
+			sourceTree = "<group>";
+		};
+		60B102012E1D00010097709F /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				60B101012E1D00010097709F /* ReportGenerator.swift */,
+			);
+			path = Export;
 			sourceTree = "<group>";
 		};
 		58A102022E1700010097709F /* Contracts */ = {
@@ -371,6 +389,7 @@
 			isa = PBXGroup;
 			children = (
 				58A1010B2E1900010097709F /* StatisticsViewModel.swift */,
+				60B101022E1D00010097709F /* ExportViewModel.swift */,
 				60A101022E1C00010097709F /* HeatmapViewModel.swift */,
 			);
 			path = ViewModels;
@@ -379,6 +398,7 @@
 		60A102202E1C00010097709F /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				60B101032E1D00010097709F /* ExportMenu.swift */,
 				60A101052E1C00010097709F /* HeatmapDayCell.swift */,
 				60A101062E1C00010097709F /* HeatmapLegend.swift */,
 				60A101042E1C00010097709F /* HeatmapMonthGrid.swift */,
@@ -644,6 +664,7 @@
 				5739682A2D70C03500679200 /* AddTearView.swift in Sources */,
 				58A100062E1800010097709F /* AnalyticsModels.swift in Sources */,
 				60A100012E1C00010097709F /* HeatmapEngine.swift in Sources */,
+				60B100012E1D00010097709F /* ReportGenerator.swift in Sources */,
 				58A100092E1800010097709F /* CryingMomentsPluralizer.swift in Sources */,
 				577C75BA2D9C88650052ECF3 /* EmptyStateView.swift in Sources */,
 				58A100072E1800010097709F /* EntryGrouper.swift in Sources */,
@@ -661,6 +682,7 @@
 				573968302D70DE1200679200 /* TagButton.swift in Sources */,
 				58A1000B2E1900010097709F /* StatisticsViewModel.swift in Sources */,
 				60A100022E1C00010097709F /* HeatmapViewModel.swift in Sources */,
+				60B100022E1D00010097709F /* ExportViewModel.swift in Sources */,
 				571049132D874CE1002AA105 /* EditTagView.swift in Sources */,
 				572787C02D820AA700639424 /* EmojiButton.swift in Sources */,
 				577C75C82D9C90C20052ECF3 /* DataAnalyzer.swift in Sources */,
@@ -668,6 +690,7 @@
 				5739682F2D70DE1200679200 /* FlowLayout.swift in Sources */,
 				60A100052E1C00010097709F /* HeatmapDayCell.swift in Sources */,
 				60A100062E1C00010097709F /* HeatmapLegend.swift in Sources */,
+				60B100032E1D00010097709F /* ExportMenu.swift in Sources */,
 				60A100042E1C00010097709F /* HeatmapMonthGrid.swift in Sources */,
 				58A100022E1700010097709F /* EntryRepository.swift in Sources */,
 				57DE81632D6627FD0097709F /* RootView.swift in Sources */,
@@ -676,6 +699,7 @@
 				573968342D70F12500679200 /* SettingsView.swift in Sources */,
 				58A1000D2E1900010097709F /* TagManagementViewModel.swift in Sources */,
 				58A1000C2E1900010097709F /* TearFormViewModel.swift in Sources */,
+				60B100042E1D00010097709F /* ShareSheet.swift in Sources */,
 				60A100072E1C00010097709F /* YearButton.swift in Sources */,
 				57DE81612D6627FD0097709F /* iCriedTodayDesignApp.swift in Sources */,
 				573968332D70F12500679200 /* TagManagementView.swift in Sources */,
