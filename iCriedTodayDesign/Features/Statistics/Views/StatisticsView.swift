@@ -4,6 +4,7 @@ import Charts
 struct StatisticsView: View {
     @ObservedObject var dataManager: TearDataManager
     @StateObject private var viewModel: StatisticsViewModel
+    @State private var showingHeatmap = false
     
     init(dataManager: TearDataManager) {
         self.dataManager = dataManager
@@ -50,9 +51,23 @@ struct StatisticsView: View {
                 .listStyle(InsetGroupedListStyle())
                 .background(Color(.systemGroupedBackground))
                 .id(dataManager.refreshTrigger)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button {
+                            showingHeatmap = true
+                        } label: {
+                            Image(systemName: "calendar.badge.clock")
+                        }
+                        .accessibilityLabel("Открыть календарь")
+                        .accessibilityIdentifier("statistics_heatmap_button")
+                    }
+                }
             }
         }
         .navigationTitle("Статистика")
+        .sheet(isPresented: $showingHeatmap) {
+            HeatmapView(dataManager: dataManager)
+        }
         .sheet(isPresented: $viewModel.showingAddTear) {
             AddTearView(
                 availableTags: viewModel.availableTags,
@@ -197,18 +212,5 @@ struct StatisticsView: View {
         guard let tappedDate: Date = proxy.value(atX: xPosition) else { return }
         
         viewModel.toggleMonth(tappedDate)
-    }
-}
-
-private struct YearButton: View {
-    let systemName: String
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: systemName)
-                .foregroundColor(.blue)
-        }
-        .buttonStyle(PlainButtonStyle())
-        .contentShape(Rectangle())
     }
 }
