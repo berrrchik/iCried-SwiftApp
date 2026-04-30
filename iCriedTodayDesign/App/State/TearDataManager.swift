@@ -20,7 +20,11 @@ final class TearDataManager: ObservableObject, DataManagerProtocol, DiaryDataMan
         self.entryRepository = EntryRepository(modelContext: modelContext)
         self.tagRepository = TagRepository(modelContext: modelContext)
         self.emojiRepository = EmojiRepository(modelContext: modelContext)
-        self.initialDataSeeder = InitialDataSeeder(emojiRepository: emojiRepository, tagRepository: tagRepository)
+        self.initialDataSeeder = InitialDataSeeder(
+            emojiRepository: emojiRepository,
+            tagRepository: tagRepository,
+            entryRepository: entryRepository
+        )
         self.dataAnalyzer = DataAnalyzer(
             entries: entryRepository.entries,
             tags: tagRepository.tags,
