@@ -12,6 +12,10 @@
 
 ## Демо
 
+<p align="center">
+  <video src="https://github.com/user-attachments/assets/bb771507-53c0-41f9-b178-694b6ad69e55" />
+</p>
+
 ---
 
 ## Основные функции
